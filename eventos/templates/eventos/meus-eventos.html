@@ -1,0 +1,104 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Meus eventos — {{ SITE_NOME }}{% endblock %}
+{% block nav_meus_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <div class="pagina-titulo-linha">
+            <div>
+                <h1>Meus eventos</h1>
+                <p class="pagina-apoio">Eventos que você publicou e o status de cada um.</p>
+            </div>
+            <div class="pagina-titulo-acoes">
+                <a class="btn btn-contorno" href="{% url 'perfil_produtor' %}">
+                    {% if produtor %}Editar perfil de produtor{% else %}Criar perfil de produtor{% endif %}
+                </a>
+                <a class="btn btn-primario" href="{% url 'criar_evento' %}">Publicar evento</a>
+            </div>
+        </div>
+    </div>
+
+    {% if produtor %}
+        <p class="pagina-nota">
+            {% icone "pessoas" 15 %}
+            Sua página pública de produtor:
+            <a href="{{ produtor.get_absolute_url }}">{{ produtor.nome }}</a>
+            {% if not produtor.verificado %}
+                — <a href="{% url 'contato' %}">peça a verificação</a> para ganhar o selo.
+            {% endif %}
+        </p>
+    {% else %}
+        <p class="pagina-nota">
+            {% icone "alerta" 15 %}
+            Você ainda não tem perfil de produtor. Com ele, seus eventos ganham uma página
+            própria com logo, bio e redes — e quem gostar de um evento acha os outros.
+            <a href="{% url 'perfil_produtor' %}">Criar agora</a>.
+        </p>
+    {% endif %}
+
+    {% if eventos %}
+        <div class="lista-gerencia">
+            {% for evento in eventos %}
+            <article class="linha-gerencia">
+                <div class="linha-gerencia-capa">
+                    {% if evento.imagem_exibicao %}
+                        <img src="{{ evento.imagem_exibicao }}" alt="" loading="lazy" decoding="async" width="96" height="72">
+                    {% endif %}
+                </div>
+
+                <div class="linha-gerencia-info">
+                    <span class="selo selo-{{ evento.status }}">{{ evento.get_status_display }}</span>
+                    <h2 class="linha-gerencia-titulo">{{ evento.nome }}</h2>
+                    <p class="linha-gerencia-meta">
+                        {{ evento|quando }} · {{ evento.local }}
+                        {% if evento.status == "publicado" %} · {{ evento.total_ingressos }} ingresso{{ evento.total_ingressos|pluralize }} · {{ evento.visualizacoes }} visualizaç{{ evento.visualizacoes|pluralize:"ão,ões" }}{% endif %}
+                    </p>
+                    {% if evento.status == "rejeitado" %}
+                        <p class="campo-erro">
+                            {% icone "alerta" 14 %}
+                            {% if evento.motivo_rejeicao %}{{ evento.motivo_rejeicao }}
+                            {% else %}Este evento não foi aprovado.{% endif %}
+                            Edite as informações para enviar de novo.
+                        </p>
+                    {% elif evento.status == "pendente" %}
+                        <p class="campo-ajuda">Na fila de revisão. Avisamos por e-mail quando publicar.</p>
+                    {% endif %}
+                    {% if evento.capacidade %}
+                        <p class="campo-ajuda">
+                            {{ evento.total_ingressos }} de {{ evento.capacidade }} lugares reservados
+                            {% if evento.esgotado %}— <strong>esgotado</strong>{% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="linha-gerencia-acoes">
+                    <a class="btn btn-p btn-contorno" href="{% url 'editar_evento' evento.slug %}">Editar</a>
+                    {% if evento.total_ingressos %}
+                        <a class="btn btn-p btn-fantasma" href="{% url 'inscritos_do_evento' evento.slug %}">
+                            Inscritos ({{ evento.total_ingressos }})
+                        </a>
+                    {% endif %}
+                    {% if evento.status == "publicado" %}
+                        <a class="btn btn-p btn-fantasma" href="{{ evento.get_absolute_url }}">Ver página</a>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "calendario" 44 %}
+            <h2>Você ainda não publicou eventos</h2>
+            <p>Organiza alguma coisa em Brasília? Publique aqui e apareça para quem procura o que fazer na cidade.</p>
+            <div class="estado-vazio-acoes">
+                <a class="btn btn-primario" href="{% url 'criar_evento' %}">Publicar meu primeiro evento</a>
+                <a class="btn btn-contorno" href="{% url 'colar_link' %}">Já publiquei em outro site</a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

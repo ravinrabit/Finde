@@ -1,0 +1,41 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Check-in — {{ evento.nome }} — {{ SITE_NOME }}{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Check-in na porta</h1>
+        <p class="pagina-apoio">{{ evento.nome }} · {{ evento|intervalo_datas }}</p>
+    </div>
+
+    <div class="cartao">
+        <dl class="lista-dados">
+            <dt>Código</dt><dd><code class="codigo-grande">{{ ingresso.codigo_curto }}</code></dd>
+            <dt>Pessoa</dt><dd>{{ ingresso.usuario.get_full_name|default:ingresso.usuario.email }}</dd>
+            <dt>Tipo</dt><dd>{{ ingresso.get_tipo_display }}</dd>
+            <dt>Valor</dt><dd>{{ ingresso.valor_rotulo }}</dd>
+            <dt>Situação</dt>
+            <dd>
+                <span class="selo selo-{{ ingresso.status }}">{{ ingresso.get_status_display }}</span>
+                {% if ingresso.utilizado_em %}
+                    <span class="lista-simples-meta">em {{ ingresso.utilizado_em|date:"d/m/Y H:i" }}</span>
+                {% endif %}
+            </dd>
+        </dl>
+
+        {% if ingresso.status == "confirmado" %}
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primario btn-cheio btn-g">Liberar entrada</button>
+            </form>
+        {% elif ingresso.status == "utilizado" %}
+            <p class="aviso aviso-warning">Este ingresso já foi utilizado. Não libere a entrada de novo.</p>
+        {% else %}
+            <p class="aviso aviso-erro">Este ingresso foi cancelado e não dá direito a entrada.</p>
+        {% endif %}
+    </div>
+
+    <p><a href="{% url 'inscritos_do_evento' evento.slug %}">← Voltar para a lista de inscritos</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}{{ titulo }} — {{ SITE_NOME }}{% endblock %}
+{% block nav_meus_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+
+    <div class="pagina-topo">
+        <a class="conta-voltar" href="{% url 'meus_eventos' %}">
+            {% icone "seta-esquerda" 16 %} Voltar para meus eventos
+        </a>
+        <h1>{{ titulo }}</h1>
+        <p class="pagina-apoio">
+            Todo evento passa por uma revisão rápida antes de ficar público. Você acompanha o status em
+            <a href="{% url 'meus_eventos' %}">Meus eventos</a>.
+        </p>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="form-aviso" role="alert">
+            {% icone "alerta" 20 %}
+            <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+        </div>
+    {% endif %}
+
+    {% if not evento %}
+    <section class="cartao cartao-atalho">
+        <h2>Já publicou este evento em outro site?</h2>
+        <p>
+            Cole o link e preenchemos o formulário com o que estiver publicado lá —
+            nome, data, local, imagem e preço. Você confere e corrige antes de enviar.
+        </p>
+        <form method="post" action="{% url 'colar_link' %}" class="form-colar-link">
+            {% csrf_token %}
+            <div class="campo-grupo">
+                <label for="{{ form_link.url.id_for_label }}">{{ form_link.url.label }}</label>
+                {{ form_link.url }}
+                <p class="campo-ajuda">{{ form_link.url.help_text }}</p>
+                {% for erro in form_link.url.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+            </div>
+            <button type="submit" class="btn btn-contorno">Ler o link</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if aviso_previa %}
+        <div class="aviso aviso-info" role="status">
+            {% icone "confirmado" 18 %} <span>{{ aviso_previa }}</span>
+        </div>
+    {% endif %}
+
+    {% if evento.status == "publicado" %}
+        <div class="aviso aviso-warning" role="status">
+            {% icone "alerta" 18 %}
+            <span>
+                Este evento está publicado. Se você mudar nome, data, local ou preço,
+                ele volta para a fila de revisão antes de aparecer de novo — é o que
+                impede que uma página aprovada vire outra coisa depois.
+            </span>
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <section class="form-secao">
+            <h2 class="form-secao-titulo">Identidade do evento</h2>
+            {% include "eventos/partials/campo.html" with campo=form.nome %}
+
+            <div class="campo-grupo {% if form.imagem.errors %}campo-invalido{% endif %}">
+                <span class="campo-rotulo">{{ form.imagem.label }}</span>
+                <label class="upload" for="{{ form.imagem.id_for_label }}" data-upload>
+                    <div class="upload-texto" data-upload-texto>
+                        {% icone "quadro" 32 %}
+                        <strong>Clique ou arraste a imagem</strong>
+                        <span class="upload-dica">Formato paisagem · JPG, PNG, WEBP ou GIF · até 5 MB</span>
+                    </div>
+                    <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da capa">
+                    {{ form.imagem }}
+                </label>
+                {% for erro in form.imagem.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+            </div>
+
+            {% include "eventos/partials/campo.html" with campo=form.resumo %}
+            {% include "eventos/partials/campo.html" with campo=form.descricao %}
+        </section>
+
+        <section class="form-secao">
+            <h2 class="form-secao-titulo">Data e horário</h2>
+            <div class="campo-linha">
+                {% include "eventos/partials/campo.html" with campo=form.data %}
+                {% include "eventos/partials/campo.html" with campo=form.data_fim %}
+            </div>
+        </section>
+
+        <section class="form-secao">
+            <h2 class="form-secao-titulo">Local</h2>
+            {% include "eventos/partials/campo.html" with campo=form.modalidade %}
+            {% include "eventos/partials/campo.html" with campo=form.local %}
+            {# Autocompletar com os locais que já existem evita "Cine Brasilia" virar um espaço novo. #}
+            <datalist id="locais-conhecidos">
+                {% for nome in locais_conhecidos %}<option value="{{ nome }}">{% endfor %}
+            </datalist>
+            {% include "eventos/partials/campo.html" with campo=form.endereco %}
+            <div class="campo-linha">
+                {% include "eventos/partials/campo.html" with campo=form.regiao %}
+                {% include "eventos/partials/campo.html" with campo=form.cidade %}
+            </div>
+        </section>
+
+        <section class="form-secao">
+            <h2 class="form-secao-titulo">Categoria e ingressos</h2>
+            {% include "eventos/partials/campo.html" with campo=form.categoria %}
+            {% include "eventos/partials/campo.html" with campo=form.gratuito %}
+            {% include "eventos/partials/campo.html" with campo=form.preco %}
+            {% include "eventos/partials/campo.html" with campo=form.organizador %}
+            {% include "eventos/partials/campo.html" with campo=form.link_ingressos %}
+        </section>
+
+        <section class="form-secao">
+            <h2 class="form-secao-titulo">Capacidade</h2>
+            <p class="form-secao-apoio">
+                Deixe em branco se não há limite de lugares. Com capacidade definida, o evento
+                aparece como esgotado assim que as reservas atingem o número.
+            </p>
+            <div class="campo-linha">
+                {% include "eventos/partials/campo.html" with campo=form.capacidade %}
+                {% include "eventos/partials/campo.html" with campo=form.limite_por_usuario %}
+            </div>
+        </section>
+
+        <div class="form-acoes">
+            <a class="btn btn-fantasma" href="{% url 'meus_eventos' %}">Cancelar</a>
+            <button type="submit" class="btn btn-primario btn-g">{{ acao }}</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Perfil de produtor — {{ SITE_NOME }}{% endblock %}
+{% block nav_meus_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Seu perfil de produtor</h1>
+        <p class="pagina-apoio">
+            É esta a página pública que aparece em cada evento que você publica.
+            {% if produtor %}
+                Ela está no ar em <a href="{{ produtor.get_absolute_url }}">{{ produtor.get_absolute_url }}</a>.
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="formulario" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="aviso aviso-erro" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for campo in form %}
+            {% include "eventos/partials/campo.html" %}
+        {% endfor %}
+
+        <div class="formulario-acoes">
+            <button type="submit" class="btn btn-primario btn-g">Salvar perfil</button>
+            <a class="btn btn-texto" href="{% url 'meus_eventos' %}">Cancelar</a>
+        </div>
+    </form>
+
+    {% if produtor and not produtor.verificado %}
+        <p class="nota-privacidade">
+            {% icone "alerta" 15 %}
+            Quer o selo de verificado? Escreva para <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a>
+            com um comprovante de que você representa este produtor.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

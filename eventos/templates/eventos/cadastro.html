@@ -1,0 +1,57 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Criar conta — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Brasília tem mais do que cabe num feed{% endblock %}
+{% block arte_texto %}Crie sua conta para reservar ingressos, salvar o que te interessa e publicar seus próprios eventos.{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Criar conta</h1>
+    <p class="conta-apoio">Leva menos de um minuto e é gratuito.</p>
+
+    {% if form.non_field_errors %}
+        <div class="form-aviso" role="alert">
+            {% icone "alerta" 20 %}
+            <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "eventos/partials/campo.html" with campo=form.full_name %}
+        {% include "eventos/partials/campo.html" with campo=form.email %}
+
+        <div class="campo-grupo {% if form.password1.errors %}campo-invalido{% endif %}">
+            <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+            <div class="senha-envelope">
+                {{ form.password1 }}
+                <button type="button" class="senha-alternar" data-senha-alternar="{{ form.password1.id_for_label }}"
+                        aria-pressed="false" aria-label="Mostrar senha">{% icone "busca" 18 %}</button>
+            </div>
+            <p class="campo-ajuda">{{ form.password1.help_text }}</p>
+            {% for erro in form.password1.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+        </div>
+
+        <div class="campo-grupo {% if form.password2.errors %}campo-invalido{% endif %}">
+            <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+            <div class="senha-envelope">
+                {{ form.password2 }}
+                <button type="button" class="senha-alternar" data-senha-alternar="{{ form.password2.id_for_label }}"
+                        aria-pressed="false" aria-label="Mostrar senha">{% icone "busca" 18 %}</button>
+            </div>
+            {% for erro in form.password2.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+        </div>
+
+        <div class="campo-marcacao {% if form.terms.errors %}campo-invalido{% endif %}">
+            {{ form.terms }}
+            <label for="{{ form.terms.id_for_label }}">
+                Li e aceito os <a href="{% url 'termos' %}">Termos de uso</a> e a
+                <a href="{% url 'privacidade' %}">Política de privacidade</a>
+            </label>
+        </div>
+        {% for erro in form.terms.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Criar conta</button>
+    </form>
+
+    <p class="conta-rodape">Já tem conta? <a href="{% url 'login' %}">Entrar</a></p>
+{% endblock %}

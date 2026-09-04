@@ -1,0 +1,25 @@
+<article class="bilhete {% if passado %}bilhete-passado{% endif %}">
+    <div class="bilhete-capa">
+        {% if ingresso.evento.imagem_exibicao %}
+            <img src="{{ ingresso.evento.imagem_exibicao }}" alt="" loading="lazy" width="104" height="140">
+        {% endif %}
+    </div>
+    <div class="bilhete-corpo">
+        <span class="selo selo-{{ ingresso.status }}">{{ ingresso.get_status_display }}</span>
+        <h3 class="bilhete-titulo">
+            <a href="{{ ingresso.evento.get_absolute_url }}">{{ ingresso.evento.nome }}</a>
+        </h3>
+        <p class="bilhete-meta">{{ ingresso.evento|quando }} · {{ ingresso.evento.local }}</p>
+        <p class="bilhete-meta">{{ ingresso.get_tipo_display }} · {{ ingresso.valor_rotulo }}</p>
+        <span class="bilhete-codigo">{{ ingresso.codigo_curto }}</span>
+
+        {% if ingresso.pode_cancelar %}
+            <div class="bilhete-acoes">
+                <form method="post" action="{% url 'cancelar_ingresso' ingresso.codigo %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-p btn-perigo">Cancelar ingresso</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</article>

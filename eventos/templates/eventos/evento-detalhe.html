@@ -1,0 +1,307 @@
+{% extends "eventos/base.html" %}
+{% load l10n %}
+
+{% block titulo %}{{ evento.nome }} — {{ evento|quando }} | {{ SITE_NOME }}{% endblock %}
+{% block descricao %}{{ evento.resumo|default:evento.descricao|striptags|truncatewords:28 }}{% endblock %}
+{% block canonica %}{{ canonica }}{% endblock %}
+{% block og_tipo %}article{% endblock %}
+{% block og_titulo %}{{ evento.nome }}{% endblock %}
+{% block og_descricao %}{{ evento|intervalo_datas }} · {{ evento.local }}, {{ evento.cidade }}{% endblock %}
+{% block og_imagem %}{% if evento.imagem_exibicao %}{{ evento.imagem_exibicao }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block nav_eventos %}aria-current="page"{% endblock %}
+{% block corpo_classe %}tem-cta-mobile{% endblock %}
+
+{% block cabeca_extra %}
+<script type="application/ld+json">{% dados_estruturados evento %}</script>
+{% endblock %}
+
+{% block conteudo %}
+
+<div class="evento-capa">
+    {% if evento.imagem_exibicao %}
+        {% capa evento "100vw" "" "eager" %}
+    {% endif %}
+    <div class="container">
+        <a class="evento-voltar" href="{% url 'lista_eventos' %}">
+            {% icone "seta-esquerda" 16 %} Voltar para a agenda
+        </a>
+    </div>
+</div>
+
+<div class="container">
+
+    {% if evento.status != "publicado" %}
+        <div class="form-aviso">
+            {% icone "alerta" 20 %}
+            <span>
+                Este evento está com status <strong>{{ evento.get_status_display|lower }}</strong> e ainda não
+                aparece publicamente. Só você e a equipe da {{ SITE_NOME }} conseguem ver esta página.
+                {% if evento.motivo_rejeicao %}
+                    <br><strong>O que precisa mudar:</strong> {{ evento.motivo_rejeicao }}
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+
+    <div class="evento-layout">
+        <div>
+            <header class="evento-cabecalho">
+                <div class="evento-selos">
+                    {% if evento.acontecendo_agora %}<span class="selo selo-agora">Acontecendo agora</span>
+                    {% elif evento.e_hoje %}<span class="selo selo-hoje">Hoje</span>{% endif %}
+                    {% if evento.categoria %}<span class="selo selo-neutro">{{ evento.get_categoria_display }}</span>{% endif %}
+                    {% if evento.gratuito %}<span class="selo selo-gratis">Entrada gratuita</span>{% endif %}
+                    {% if evento.modalidade != "presencial" %}<span class="selo selo-info">{{ evento.get_modalidade_display }}</span>{% endif %}
+                </div>
+
+                <h1 class="evento-titulo">{{ evento.nome }}</h1>
+                {% if evento.resumo %}<p class="evento-resumo">{{ evento.resumo }}</p>{% endif %}
+            </header>
+
+            <div class="evento-fatos">
+                <div class="fato">
+                    <span class="fato-icone">{% icone "calendario" 18 %}</span>
+                    <div>
+                        <p class="fato-rotulo">Quando</p>
+                        <p class="fato-valor">{{ evento|intervalo_datas }}</p>
+                    </div>
+                </div>
+
+                <div class="fato">
+                    <span class="fato-icone">{% if evento.modalidade == "online" %}{% icone "globo" 18 %}{% else %}{% icone "pino" 18 %}{% endif %}</span>
+                    <div>
+                        <p class="fato-rotulo">Onde</p>
+                        <p class="fato-valor">
+                            {% if evento.local_ref %}
+                                <a href="{{ evento.local_ref.get_absolute_url }}">{{ evento.local }}</a>
+                            {% else %}{{ evento.local }}{% endif %}
+                        </p>
+                        {% if evento.endereco %}<p class="fato-extra">{{ evento.endereco }}</p>{% endif %}
+                        {% if evento.regiao %}
+                            <p class="fato-extra">
+                                <a href="{% url 'eventos_regiao' evento.regiao %}">{{ evento.get_regiao_display }}</a>, {{ evento.cidade }}
+                            </p>
+                        {% endif %}
+                        {% if evento.local_ref.metro_proximo %}
+                            <p class="fato-extra">Metrô {{ evento.local_ref.metro_proximo }}, a {{ evento.local_ref.metro_distancia_m|metros }}</p>
+                        {% endif %}
+                        {% if evento.local_ref.acessivel_cadeirante %}
+                            <p class="fato-extra">Acessível para cadeirante</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="fato">
+                    <span class="fato-icone">{% icone "dinheiro" 18 %}</span>
+                    <div>
+                        <p class="fato-rotulo">Quanto</p>
+                        <p class="fato-valor">{{ evento.preco_rotulo }}</p>
+                        {% if not evento.gratuito and evento.preco %}<p class="fato-extra">Meia-entrada disponível</p>{% endif %}
+                    </div>
+                </div>
+
+                {% if evento.organizador_nome %}
+                <div class="fato">
+                    <span class="fato-icone">{% icone "pessoas" 18 %}</span>
+                    <div>
+                        <p class="fato-rotulo">Organização</p>
+                        <p class="fato-valor">
+                            {% if evento.produtor %}
+                                <a href="{{ evento.produtor.get_absolute_url }}">{{ evento.organizador_nome }}</a>
+                                {% if evento.produtor.verificado %}
+                                    <span class="selo selo-verificado">{% icone "confirmado" 12 %} Verificado</span>
+                                {% endif %}
+                            {% else %}{{ evento.organizador_nome }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if evento.capacidade %}
+                <div class="fato">
+                    <span class="fato-icone">{% icone "ingresso" 18 %}</span>
+                    <div>
+                        <p class="fato-rotulo">Lugares</p>
+                        <p class="fato-valor">
+                            {% if evento.esgotado %}Esgotado
+                            {% else %}{{ vagas }} de {{ evento.capacidade }} disponíve{{ vagas|pluralize:"l,is" }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <section class="evento-bloco">
+                <h2 class="evento-bloco-titulo secao-titulo">Sobre o evento</h2>
+                <div class="evento-texto">
+                    {% if evento.descricao %}
+                        {{ evento.descricao|linebreaks }}
+                    {% else %}
+                        <p>O organizador ainda não publicou uma descrição para este evento.</p>
+                    {% endif %}
+                </div>
+                {% if evento.link_original %}
+                    <p class="evento-texto"><a href="{{ evento.link_original }}" rel="nofollow noopener" target="_blank">Página original do evento</a></p>
+                {% endif %}
+            </section>
+
+            {% if do_produtor %}
+            <section class="evento-bloco">
+                <h2 class="evento-bloco-titulo secao-titulo">Mais de {{ evento.organizador_nome }}</h2>
+                <div class="grade-eventos grade-eventos-4">
+                    {% for evento in do_produtor %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if no_local %}
+            <section class="evento-bloco">
+                <h2 class="evento-bloco-titulo secao-titulo">Também no {{ evento.local }}</h2>
+                <div class="grade-eventos grade-eventos-4">
+                    {% for evento in no_local %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <aside class="painel-ingressos">
+            <div class="painel-topo">
+                <p class="painel-preco">{{ evento.preco_rotulo }}</p>
+                <p class="painel-preco-nota">
+                    {% if evento.ja_aconteceu %}Este evento já aconteceu
+                    {% elif evento.gratuito %}Reserve para garantir seu lugar
+                    {% elif preco_definido %}Inteira e meia-entrada disponíveis
+                    {% else %}O organizador ainda não definiu o valor{% endif %}
+                </p>
+            </div>
+
+            <div class="painel-corpo">
+                {% if not evento.ja_aconteceu and preco_definido and not evento.gratuito %}
+                    <div class="opcao-ingresso">
+                        <span class="opcao-nome">Inteira</span>
+                        <span class="opcao-valor">{{ valor_inteira|reais }}</span>
+                    </div>
+                    <div class="opcao-ingresso">
+                        <span class="opcao-nome">Meia-entrada</span>
+                        <span class="opcao-valor">{{ valor_meia|reais }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="painel-acoes">
+                    {% if evento.ja_aconteceu %}
+                        <button type="button" class="btn btn-primario btn-g btn-cheio" disabled>Evento encerrado</button>
+                        <a class="btn btn-contorno btn-cheio" href="{% url 'lista_eventos' %}">Ver próximos eventos</a>
+                    {% elif evento.link_ingressos %}
+                        <a class="btn btn-primario btn-g btn-cheio" href="{{ evento.link_ingressos }}" rel="nofollow noopener" target="_blank">Comprar no site oficial</a>
+                        <p class="painel-nota">A venda acontece fora da {{ SITE_NOME }}.</p>
+                    {% elif evento.esgotado %}
+                        <button type="button" class="btn btn-primario btn-g btn-cheio" disabled>Esgotado</button>
+                        <p class="painel-nota">Se alguém cancelar, a vaga volta a ficar disponível aqui.</p>
+                    {% elif user.is_authenticated %}
+                        <a class="btn btn-primario btn-g btn-cheio" href="{% url 'reservar_ingresso' evento.slug %}">
+                            {% if evento.gratuito %}Reservar lugar{% else %}Reservar ingresso{% endif %}
+                        </a>
+                        {% if vagas is not None %}
+                            <p class="painel-nota">{{ vagas }} vaga{{ vagas|pluralize }} restante{{ vagas|pluralize }}.</p>
+                        {% endif %}
+                    {% else %}
+                        <a class="btn btn-primario btn-g btn-cheio" href="{% url 'login' %}?next={% url 'reservar_ingresso' evento.slug %}">Entrar para reservar</a>
+                        <p class="painel-nota">Você precisa de uma conta para reservar.</p>
+                    {% endif %}
+
+                    {% if user.is_authenticated and not evento.ja_aconteceu %}
+                        <form method="post" action="{% url 'alternar_favorito' evento.slug %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="proximo" value="{{ evento.get_absolute_url }}">
+                            <button type="submit" class="btn btn-contorno btn-cheio">
+                                {% icone "coracao" 17 %}
+                                {% if e_favorito %}Remover dos favoritos{% else %}Salvar nos favoritos{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if e_dono %}
+                        <a class="btn btn-contorno btn-cheio" href="{% url 'editar_evento' evento.slug %}">Editar evento</a>
+                        <a class="btn btn-contorno btn-cheio" href="{% url 'inscritos_do_evento' evento.slug %}">Ver inscritos</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="compartilhar">
+                <button type="button" class="btn btn-p btn-fantasma"
+                        data-compartilhar="{{ canonica }}"
+                        data-titulo="{{ evento.nome }}">
+                    {% icone "compartilhar" 16 %} <span data-rotulo>Compartilhar</span>
+                </button>
+                <a class="btn btn-p btn-fantasma" href="{% url 'evento_ics' evento.slug %}">
+                    {% icone "calendario" 16 %} Adicionar ao calendário
+                </a>
+                <a class="btn btn-p btn-fantasma" href="{{ link_google_agenda }}" target="_blank" rel="noopener">
+                    {% icone "calendario" 16 %} Google Agenda
+                </a>
+                {% if evento.modalidade != "online" %}
+                    <a class="btn btn-p btn-fantasma" target="_blank" rel="noopener"
+                       href="https://www.google.com/maps/search/?api=1&query={{ evento.local|urlencode }}%20{{ evento.endereco|urlencode }}%20{{ evento.cidade|urlencode }}">
+                        {% icone "pino" 16 %} Como chegar
+                    </a>
+                {% endif %}
+            </div>
+            {% if evento.tem_coordenadas %}
+                <div class="mapa-caixa mapa-caixa-p"
+                     data-mapa="{% url 'mapa_dados' %}?q={{ evento.local|urlencode }}"
+                     data-lat="{{ evento.latitude|unlocalize }}"
+                     data-lon="{{ evento.longitude|unlocalize }}"
+                     data-zoom="15"
+                     role="application"
+                     aria-label="Mapa de {{ evento.local }}"></div>
+                {% if evento.local_ref.coordenada_aproximada %}
+                    <p class="painel-nota">Localização aproximada. Confirme o endereço acima.</p>
+                {% endif %}
+            {% endif %}
+        </aside>
+    </div>
+
+    {% if not evento.ja_aconteceu %}
+        {# No mobile o painel acima fica só no fim da página; esta barra repete
+           a ação principal e o preço, sempre à mão, sem precisar rolar. #}
+        <div class="cta-mobile">
+            <div class="cta-mobile-preco">
+                <span class="cta-mobile-valor">{{ evento.preco_rotulo }}</span>
+                {% if vagas is not None and not evento.esgotado %}
+                    <span class="cta-mobile-nota">{{ vagas }} vaga{{ vagas|pluralize }}</span>
+                {% endif %}
+            </div>
+            {% if evento.link_ingressos %}
+                <a class="btn btn-primario btn-cheio" href="{{ evento.link_ingressos }}" rel="nofollow noopener" target="_blank">
+                    Comprar
+                </a>
+            {% elif evento.esgotado %}
+                <button type="button" class="btn btn-primario btn-cheio" disabled>Esgotado</button>
+            {% elif user.is_authenticated %}
+                <a class="btn btn-primario btn-cheio" href="{% url 'reservar_ingresso' evento.slug %}">
+                    {% if evento.gratuito %}Reservar lugar{% else %}Reservar{% endif %}
+                </a>
+            {% else %}
+                <a class="btn btn-primario btn-cheio" href="{% url 'login' %}?next={% url 'reservar_ingresso' evento.slug %}">
+                    Entrar para reservar
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if relacionados %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <h2 class="secao-titulo">Você também pode gostar</h2>
+            {% if evento.categoria %}
+                <a class="secao-link" href="{% url 'eventos_categoria' evento.categoria %}">Ver categoria</a>
+            {% endif %}
+        </div>
+        <div class="grade-eventos grade-eventos-4">
+            {% for evento in relacionados %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Termos de uso — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Termos de uso da plataforma Finde.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Termos de uso</h1>
+        <p class="prosa-data">Atualizado em {{ atualizado_em }}</p>
+    </div>
+
+    <div class="prosa">
+        <p>
+            Este documento descreve as regras de uso da {{ SITE_NOME }}. Ao criar uma conta ou usar o site,
+            você concorda com o que está aqui.
+        </p>
+
+        <h2>1. O que a plataforma faz</h2>
+        <p>
+            A {{ SITE_NOME }} é um catálogo de eventos do Distrito Federal e região. Ela permite descobrir eventos,
+            reservar ingressos quando essa opção está disponível e publicar eventos como organizador.
+        </p>
+
+        <h2>2. Conta</h2>
+        <p>
+            Você é responsável por manter a segurança da sua senha e pelas ações feitas com a sua conta.
+            Informe dados verdadeiros no cadastro. Contas com informação falsa podem ser suspensas.
+        </p>
+
+        <h2>3. Reservas e ingressos</h2>
+        <ul>
+            <li>A reserva vale para o evento, o tipo e a quantidade escolhidos no momento da confirmação.</li>
+            <li>Você pode cancelar uma reserva a qualquer momento antes do início do evento.</li>
+            <li>Quando o evento vende ingressos em plataforma externa, a relação de compra é com aquela plataforma.</li>
+            <li>Alterações de data, local ou cancelamento do evento são responsabilidade do organizador.</li>
+        </ul>
+
+        <h2>4. Publicação de eventos</h2>
+        <p>
+            Ao publicar um evento você declara ter autorização para divulgá-lo e que as informações estão corretas.
+            Todo evento passa por revisão. Podemos recusar ou remover eventos com informação incompleta, conteúdo
+            ilegal, discriminatório ou que não aconteça no DF e região.
+        </p>
+        <p>
+            Você mantém os direitos sobre os textos e imagens que envia, e nos autoriza a exibi-los no site
+            para divulgar o evento.
+        </p>
+
+        <h2>5. Uso aceitável</h2>
+        <ul>
+            <li>Não tente acessar contas ou dados de outras pessoas.</li>
+            <li>Não use robôs para coletar conteúdo do site em massa.</li>
+            <li>Não publique conteúdo que viole direitos de terceiros.</li>
+        </ul>
+
+        <h2>6. Limites de responsabilidade</h2>
+        <p>
+            As informações de cada evento são fornecidas pelo organizador ou importadas da fonte original.
+            Confirme data, horário e local com o organizador antes de se deslocar. A {{ SITE_NOME }} não responde
+            pela realização do evento nem pelo conteúdo apresentado nele.
+        </p>
+
+        <h2>7. Mudanças nestes termos</h2>
+        <p>
+            Podemos atualizar estes termos. Mudanças relevantes serão avisadas no site com antecedência razoável.
+        </p>
+
+        <h2>8. Contato</h2>
+        <p>
+            Dúvidas sobre estes termos podem ser enviadas pela <a href="{% url 'ajuda' %}">central de ajuda</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

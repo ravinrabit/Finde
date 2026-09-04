@@ -1,0 +1,117 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}{{ local.nome }} — eventos e programação — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Programação, endereço e como chegar no {{ local.nome }}{% if local.regiao %}, {{ local.get_regiao_display }}{% endif %}, Brasília.{% endblock %}
+{% block og_titulo %}{{ local.nome }} — {{ SITE_NOME }}{% endblock %}
+{% block nav_locais %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <nav class="trilha" aria-label="Você está aqui">
+        <a href="{% url 'home' %}">Início</a>
+        <span aria-hidden="true">›</span>
+        <a href="{% url 'lista_locais' %}">Locais</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{{ local.nome }}</span>
+    </nav>
+
+    <div class="pagina-topo">
+        <h1>{{ local.nome }}</h1>
+        {% if local.endereco or local.regiao %}
+            <p class="pagina-apoio">{% icone "pino" 16 %} {{ local.endereco_completo }}</p>
+        {% endif %}
+        {% if local.descricao %}<p class="pagina-apoio">{{ local.descricao }}</p>{% endif %}
+    </div>
+
+    <div class="local-grade">
+        <div class="local-info">
+            <h2 class="secao-titulo-p">Informações</h2>
+            <dl class="lista-dados">
+                {% if local.referencia %}
+                    <dt>Ponto de referência</dt><dd>{{ local.referencia }}</dd>
+                {% endif %}
+                {% if local.cep %}<dt>CEP</dt><dd>{{ local.cep }}</dd>{% endif %}
+                {% if local.metro_proximo %}
+                    <dt>Metrô mais próximo</dt>
+                    <dd>{{ local.metro_proximo }} — {{ local.metro_distancia_m|metros }} a pé</dd>
+                {% endif %}
+                <dt>Acessibilidade</dt>
+                <dd>
+                    {% if local.acessivel_cadeirante %}Acessível para cadeirante
+                    {% elif local.acessivel_cadeirante is False %}Sem acessibilidade informada como disponível
+                    {% else %}Não informado{% endif %}
+                </dd>
+                <dt>Estacionamento</dt>
+                <dd>
+                    {% if local.estacionamento %}Sim
+                    {% elif local.estacionamento is False %}Não
+                    {% else %}Não informado{% endif %}
+                </dd>
+                {% if local.site %}
+                    <dt>Site</dt>
+                    <dd><a href="{{ local.site }}" rel="noopener nofollow" target="_blank">{{ local.site }}</a></dd>
+                {% endif %}
+            </dl>
+        </div>
+
+        {% if coordenadas %}
+            <div class="local-mapa">
+                <div class="mapa-caixa mapa-caixa-p"
+                     data-mapa="{% url 'mapa_dados' %}?regiao={{ local.regiao }}"
+                     data-lat="{{ coordenadas.0|stringformat:'s' }}"
+                     data-lon="{{ coordenadas.1|stringformat:'s' }}"
+                     data-zoom="15"
+                     role="application"
+                     aria-label="Mapa de {{ local.nome }}"></div>
+                {% if local.coordenada_aproximada %}
+                    <p class="mapa-nota">
+                        Localização aproximada (centro de {{ local.get_regiao_display }}).
+                        Confirme o endereço na página do evento.
+                    </p>
+                {% endif %}
+                <a class="btn btn-contorno btn-cheio"
+                   href="https://www.openstreetmap.org/?mlat={{ coordenadas.0|stringformat:'s' }}&mlon={{ coordenadas.1|stringformat:'s' }}#map=17/{{ coordenadas.0|stringformat:'s' }}/{{ coordenadas.1|stringformat:'s' }}"
+                   rel="noopener nofollow" target="_blank">Abrir no mapa</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Programação</h2>
+                <p class="secao-apoio">{{ total }} evento{{ total|pluralize }} confirmado{{ total|pluralize }} neste espaço.</p>
+            </div>
+        </div>
+
+        {% if pagina.object_list %}
+            <div class="grade-eventos">
+                {% for evento in pagina %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+            </div>
+            {% include "eventos/partials/paginacao.html" %}
+        {% else %}
+            <div class="estado-vazio">
+                {% icone "calendario" 40 %}
+                <h3>Sem evento marcado por enquanto</h3>
+                <p>Quando houver programação neste local, ela aparece aqui.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if locais_vizinhos %}
+        <section class="secao">
+            <div class="secao-cabecalho">
+                <div><h2 class="secao-titulo">Outros espaços em {{ local.get_regiao_display }}</h2></div>
+            </div>
+            <div class="grade-locais">
+                {% for vizinho in locais_vizinhos %}
+                    <a class="card-local-item" href="{{ vizinho.get_absolute_url }}">
+                        <h3>{{ vizinho.nome }}</h3>
+                        <p class="card-local-total">{{ vizinho.total }} evento{{ vizinho.total|pluralize }}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

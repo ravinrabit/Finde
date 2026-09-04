@@ -1,0 +1,10 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Senha atualizada — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Senha atualizada{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Senha atualizada</h1>
+    <p class="conta-apoio">Sua senha foi alterada com sucesso.</p>
+    <a class="btn btn-primario btn-g btn-cheio" href="{% url 'home' %}">Voltar ao site</a>
+{% endblock %}

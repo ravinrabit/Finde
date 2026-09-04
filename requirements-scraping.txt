@@ -1,0 +1,16 @@
+# IMPORTADOR LEGADO — EM DESLIGAMENTO.
+#
+# Usado apenas por "manage.py importar_eventos --fonte sympla-legado", que já
+# vem desligado (SYMPLA_SCRAPING_ATIVO=False).
+#
+# As fontes de ingestão atuais — Mapa nas Nuvens, parceiros com feed
+# autorizado, "colar link" e integração Sympla por token do produtor — não
+# precisam de navegador e não estão aqui.
+#
+# Para saber se já dá para apagar este arquivo:
+#     python manage.py comparar_catalogo
+#
+# O chromedriver é resolvido pelo Selenium Manager (nativo desde o Selenium
+# 4.6), por isso não há webdriver-manager aqui.
+-r requirements.txt
+selenium>=4.21

@@ -1,0 +1,15 @@
+Boa notícia: o seu evento está no ar.
+
+  {{ evento.nome }}
+  {{ evento.data|date:"l, j \d\e F \d\e Y, H:i" }}
+  {{ evento.local }}
+
+{% if url %}Veja como ficou:
+{{ url }}
+
+{% endif %}Divulgue esse link. Quem abrir vai encontrar data, local, mapa e o botão de reserva.
+
+Uma dica: eventos com capa e descrição completa recebem bem mais visitas do que
+os que ficam só com o título.
+
+— Equipe {{ SITE_NOME }}

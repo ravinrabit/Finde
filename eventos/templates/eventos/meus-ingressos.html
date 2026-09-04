@@ -1,0 +1,78 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Meus ingressos — {{ SITE_NOME }}{% endblock %}
+{% block nav_ingressos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <h1>Meus ingressos</h1>
+        <p class="pagina-apoio">Apresente o código na entrada do evento.</p>
+    </div>
+
+    <div class="abas" role="tablist" data-abas aria-label="Filtrar ingressos">
+        <button type="button" class="aba" role="tab" id="aba-proximos"
+                aria-controls="painel-proximos" aria-selected="true">
+            Próximos ({{ total_proximos }})
+        </button>
+        <button type="button" class="aba" role="tab" id="aba-passados"
+                aria-controls="painel-passados" aria-selected="false" tabindex="-1">
+            Já aconteceram ({{ total_passados }})
+        </button>
+        {% if total_cancelados %}
+        <button type="button" class="aba" role="tab" id="aba-cancelados"
+                aria-controls="painel-cancelados" aria-selected="false" tabindex="-1">
+            Cancelados ({{ total_cancelados }})
+        </button>
+        {% endif %}
+    </div>
+
+    <section id="painel-proximos" role="tabpanel" aria-labelledby="aba-proximos">
+        {% if proximos %}
+            <div class="grade-ingressos">
+                {% for ingresso in proximos %}
+                    {% include "eventos/partials/bilhete.html" %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="estado-vazio">
+                {% icone "ingresso" 44 %}
+                <h2>Nenhum ingresso reservado</h2>
+                <p>Quando você reservar um ingresso, ele aparece aqui com o código de entrada.</p>
+                <a class="btn btn-primario" href="{% url 'lista_eventos' %}">Explorar a agenda</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section id="painel-passados" role="tabpanel" aria-labelledby="aba-passados" hidden>
+        {% if passados %}
+            <div class="grade-ingressos">
+                {% for ingresso in passados %}
+                    {% include "eventos/partials/bilhete.html" with passado=True %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="estado-vazio">
+                {% icone "relogio" 44 %}
+                <h2>Seu histórico está vazio</h2>
+                <p>Os eventos que você já foi ficam registrados aqui.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if total_cancelados %}
+    <section id="painel-cancelados" role="tabpanel" aria-labelledby="aba-cancelados" hidden>
+        <div class="grade-ingressos">
+            {% for ingresso in cancelados %}
+                {% include "eventos/partials/bilhete.html" with passado=True %}
+            {% endfor %}
+        </div>
+        <p class="painel-nota">
+            Reservas canceladas ficam registradas por transparência. Elas não dão direito a entrada.
+        </p>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

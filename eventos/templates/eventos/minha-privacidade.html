@@ -1,0 +1,64 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Meus dados — {{ SITE_NOME }}{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Seus dados</h1>
+        <p class="pagina-apoio">
+            A Lei Geral de Proteção de Dados garante que você veja, leve embora e apague
+            o que guardamos sobre você. Aqui é onde isso acontece — sem precisar pedir por e-mail.
+        </p>
+    </div>
+
+    <div class="painel-numeros">
+        <div class="painel-numero"><strong>{{ total_ingressos }}</strong><span>ingresso{{ total_ingressos|pluralize }}</span></div>
+        <div class="painel-numero"><strong>{{ total_favoritos }}</strong><span>favorito{{ total_favoritos|pluralize }}</span></div>
+        <div class="painel-numero"><strong>{{ total_eventos }}</strong><span>evento{{ total_eventos|pluralize }} publicado{{ total_eventos|pluralize }}</span></div>
+    </div>
+
+    <section class="cartao">
+        <h2>Levar meus dados</h2>
+        <p>
+            Baixe um arquivo JSON com sua conta, ingressos, favoritos, eventos publicados e
+            o registro de quando você aceitou os termos.
+        </p>
+        <a class="btn btn-primario" href="{% url 'exportar_meus_dados' %}">Baixar meus dados (JSON)</a>
+    </section>
+
+    <section class="cartao">
+        <h2>Corrigir meus dados</h2>
+        <p>
+            Nome, e-mail e senha ficam na sua conta. Para alterar a senha, use a
+            <a href="{% url 'password_change' %}">página de troca de senha</a>.
+            Para corrigir nome ou e-mail, escreva para
+            <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a>.
+        </p>
+    </section>
+
+    {% if aceites %}
+        <section class="cartao">
+            <h2>Consentimentos registrados</h2>
+            <ul class="lista-simples">
+                {% for aceite in aceites %}
+                    <li>
+                        Termos {{ aceite.versao_termos }} e Privacidade {{ aceite.versao_privacidade }}
+                        <span class="lista-simples-meta">aceitos em {{ aceite.aceito_em|date:"d/m/Y H:i" }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    <section class="cartao cartao-perigo">
+        <h2>Excluir minha conta</h2>
+        <p>
+            Apaga sua conta, seus ingressos e seus favoritos. Não tem volta.
+            Os eventos que você publicou continuam no ar, desvinculados de você — apagá-los
+            prejudicaria quem já reservou.
+        </p>
+        <a class="btn btn-perigo" href="{% url 'excluir_minha_conta' %}">Quero excluir minha conta</a>
+    </section>
+</div>
+{% endblock %}

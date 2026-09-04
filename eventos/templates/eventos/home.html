@@ -1,0 +1,197 @@
+{% extends "eventos/base.html" %}
+{% load static %}
+
+{% block titulo %}{{ SITE_NOME }} — o que fazer em Brasília{% endblock %}
+{% block descricao %}Descubra shows, festivais, teatro, gastronomia e cultura em Brasília e no Distrito Federal. Veja o que acontece hoje, no fim de semana ou perto de você.{% endblock %}
+
+{% block conteudo %}
+
+<section class="hero">
+    <div class="hero-malha" aria-hidden="true"></div>
+    <div class="container hero-conteudo">
+        <div>
+            <h1 class="hero-titulo">O que acontece em Brasília, num só lugar</h1>
+            <p class="hero-apoio">
+                Shows no Mané Garrincha, choro na Asa Sul, feira no Parque da Cidade.
+                Busque por nome, filtre por região e garanta seu ingresso.
+            </p>
+
+            <form class="hero-busca" action="{% url 'lista_eventos' %}" method="get" role="search">
+                <div class="busca-caixa">
+                    <div class="busca-campo">
+                        <label class="so-leitor" for="busca-hero">Buscar evento</label>
+                        {% icone "busca" 18 %}
+                        <input type="search" id="busca-hero" name="q" placeholder="Evento, artista ou local">
+                    </div>
+                    <div class="busca-campo">
+                        <label class="so-leitor" for="regiao-hero">Região</label>
+                        {% icone "pino" 18 %}
+                        <select id="regiao-hero" name="regiao">
+                            <option value="">Todo o DF</option>
+                            {% for regiao in regioes %}
+                                <option value="{{ regiao.valor }}">{{ regiao.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-destaque btn-g">Buscar</button>
+                </div>
+            </form>
+
+            <div class="hero-atalhos">
+                <a class="atalho" href="{% url 'eventos_hoje' %}">{% icone "relogio" 15 %} Hoje</a>
+                <a class="atalho" href="{% url 'eventos_fim_de_semana' %}">{% icone "calendario" 15 %} Fim de semana</a>
+                <a class="atalho" href="{% url 'eventos_gratuitos' %}">{% icone "dinheiro" 15 %} Gratuitos</a>
+                <a class="atalho" href="{% url 'mapa_eventos' %}">{% icone "pino" 15 %} No mapa</a>
+                <button type="button" class="atalho atalho-botao" data-perto-de-mim data-raio="5">
+                    {% icone "pino" 15 %} <span data-rotulo>Perto de mim</span>
+                </button>
+            </div>
+            <p class="hero-erro-local" data-localizacao-erro hidden>
+                Não conseguimos sua localização. Verifique a permissão do navegador ou use o filtro de região.
+            </p>
+        </div>
+
+        {% if destaque_principal %}
+            <a class="hero-cartaz" href="{{ destaque_principal.get_absolute_url }}">
+                {% if destaque_principal.imagem_exibicao %}
+                    {% capa destaque_principal "(max-width: 900px) 90vw, 600px" "" "eager" %}
+                {% endif %}
+                <div class="hero-cartaz-info">
+                    <span class="selo selo-claro">Em destaque</span>
+                    <span class="hero-cartaz-titulo">{{ destaque_principal.nome }}</span>
+                    <span class="hero-cartaz-meta">{{ destaque_principal|quando }} · {{ destaque_principal.local }}</span>
+                </div>
+            </a>
+        {% else %}
+            <div class="hero-simbolo">
+                <img src="{% static 'img/simbolo-finde.png' %}" alt="" width="420" height="379">
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <div class="eixo eixo-claro"></div>
+        <div class="hero-numeros">
+            <span class="hero-numero"><strong>{{ total_eventos }}</strong><span>eventos publicados</span></span>
+            <span class="hero-numero"><strong>{{ total_categorias }}</strong><span>categorias ativas</span></span>
+            <span class="hero-numero"><strong>DF</strong><span>e entorno</span></span>
+        </div>
+    </div>
+
+    <svg class="hero-skyline" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M0 90h1200V74H1010c-8-14-22-24-40-27 8-10 6-24-6-31v58H930V44h-14v46h-56c0-16-14-28-32-28s-32 12-32 28h-42V26h-12v64h-46l-24-52-24 52h-46V38c0-8-8-14-18-14s-18 6-18 14v52H430c-3-20-19-34-40-34s-37 14-40 34H180c-6-12-20-20-36-20s-30 8-36 20H0Z"/>
+        <path fill="currentColor" d="M596 90V18l10-16 10 16v72h-20Z" opacity=".8"/>
+    </svg>
+</section>
+
+<div class="container">
+
+    {% if destaques_secundarios %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Também em destaque</h2>
+                <p class="secao-apoio">Escolhas da curadoria para esta semana.</p>
+            </div>
+        </div>
+        <div class="grade-eventos grade-eventos-2">
+            {% for evento in destaques_secundarios %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if fim_de_semana %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Neste fim de semana</h2>
+                <p class="secao-apoio">De sexta à noite até domingo, sem precisar planejar muito.</p>
+            </div>
+            <a class="secao-link" href="{% url 'eventos_fim_de_semana' %}">Ver todos</a>
+        </div>
+        <div class="grade-eventos grade-eventos-4">
+            {% for evento in fim_de_semana %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if categorias %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Por categoria</h2>
+                <p class="secao-apoio">O circuito da cidade organizado por tipo de programa.</p>
+            </div>
+        </div>
+        <div class="trilha-categorias">
+            {% for categoria in categorias %}
+                <a class="categoria-item" href="{{ categoria.url }}">
+                    <span class="categoria-icone">{% icone_categoria categoria.valor 20 %}</span>
+                    <span class="categoria-nome">{{ categoria.nome }}</span>
+                    <span class="categoria-total">{{ categoria.total }} evento{{ categoria.total|pluralize }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Acontecendo em breve</h2>
+                <p class="secao-apoio">Os próximos eventos confirmados no Distrito Federal.</p>
+            </div>
+            <a class="secao-link" href="{% url 'lista_eventos' %}">Ver agenda completa</a>
+        </div>
+
+        {% if em_breve %}
+            <div class="grade-eventos">
+                {% for evento in em_breve %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+            </div>
+        {% else %}
+            <div class="estado-vazio">
+                {% icone "vazio" 44 %}
+                <h3>A agenda ainda está vazia</h3>
+                <p>Nenhum evento foi publicado até agora. Se você organiza algo em Brasília, esse é um bom lugar para começar.</p>
+                <a class="btn btn-primario" href="{% url 'criar_evento' %}">Publicar um evento</a>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if gratuitos %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Entrada gratuita</h2>
+                <p class="secao-apoio">Programação aberta ao público, sem custo de ingresso.</p>
+            </div>
+            <a class="secao-link" href="{% url 'eventos_gratuitos' %}">Ver todos</a>
+        </div>
+        <div class="grade-eventos grade-eventos-4">
+            {% for evento in gratuitos %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if regioes %}
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Perto de você</h2>
+                <p class="secao-apoio">Do Plano Piloto às cidades, o que está rolando em cada região.</p>
+            </div>
+            <a class="secao-link" href="{% url 'mapa_eventos' %}">Ver no mapa</a>
+        </div>
+        <div class="grade-regioes">
+            {% for regiao in regioes %}
+                <a class="regiao-item" href="{{ regiao.url }}">
+                    <span>{{ regiao.nome }}</span>
+                    <span class="regiao-total">{{ regiao.total }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

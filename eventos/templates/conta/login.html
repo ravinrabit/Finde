@@ -1,0 +1,41 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Entrar — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Bem-vindo de volta{% endblock %}
+{% block arte_texto %}Entre para ver seus ingressos, favoritos e os eventos que você publicou.{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Entrar</h1>
+    <p class="conta-apoio">Use o e-mail que você cadastrou.</p>
+
+    {% if form.non_field_errors %}
+        <div class="form-aviso" role="alert">
+            {% icone "alerta" 20 %}
+            <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        {% include "eventos/partials/campo.html" with campo=form.username %}
+
+        <div class="campo-grupo {% if form.password.errors %}campo-invalido{% endif %}">
+            <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            <div class="senha-envelope">
+                {{ form.password }}
+                <button type="button" class="senha-alternar" data-senha-alternar="{{ form.password.id_for_label }}"
+                        aria-pressed="false" aria-label="Mostrar senha">{% icone "busca" 18 %}</button>
+            </div>
+            {% for erro in form.password.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+        </div>
+
+        <p><a class="secao-link" href="{% url 'password_reset' %}">Esqueci minha senha</a></p>
+
+        <div class="conta-divisor" aria-hidden="true"></div>
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Entrar</button>
+    </form>
+
+    <p class="conta-rodape">Ainda não tem conta? <a href="{% url 'cadastro' %}">Criar conta gratuita</a></p>
+{% endblock %}

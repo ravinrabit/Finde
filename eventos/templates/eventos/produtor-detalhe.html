@@ -1,0 +1,91 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}{{ produtor.nome }} — eventos em Brasília — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}{% if produtor.bio %}{{ produtor.bio|truncatewords:25 }}{% else %}Agenda de eventos de {{ produtor.nome }} em Brasília e no Distrito Federal.{% endif %}{% endblock %}
+{% block og_titulo %}{{ produtor.nome }} — {{ SITE_NOME }}{% endblock %}
+{% block og_imagem %}{% if produtor.logo_exibicao %}{{ request.scheme }}://{{ request.get_host }}{{ produtor.logo_exibicao }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <nav class="trilha" aria-label="Você está aqui">
+        <a href="{% url 'home' %}">Início</a>
+        <span aria-hidden="true">›</span>
+        <a href="{% url 'lista_produtores' %}">Produtores</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{{ produtor.nome }}</span>
+    </nav>
+
+    <header class="produtor-cabecalho">
+        <div class="produtor-logo">
+            {% if produtor.logo_exibicao %}
+                <img src="{{ produtor.logo_exibicao }}" alt="Logo de {{ produtor.nome }}" width="140" height="140">
+            {% else %}
+                {% icone "pessoas" 44 %}
+            {% endif %}
+        </div>
+        <div class="produtor-info">
+            <h1>
+                {{ produtor.nome }}
+                {% if produtor.verificado %}
+                    <span class="selo selo-verificado">{% icone "confirmado" 14 %} Verificado</span>
+                {% endif %}
+            </h1>
+            {% if produtor.bio %}<p class="pagina-apoio">{{ produtor.bio|linebreaksbr }}</p>{% endif %}
+
+            <div class="produtor-links">
+                {% if produtor.site %}
+                    <a class="btn btn-p btn-contorno" href="{{ produtor.site }}" rel="noopener nofollow" target="_blank">
+                        {% icone "globo" 15 %} Site
+                    </a>
+                {% endif %}
+                {% if produtor.instagram %}
+                    <a class="btn btn-p btn-contorno" href="{{ produtor.instagram_url }}" rel="noopener nofollow" target="_blank">
+                        Instagram
+                    </a>
+                {% endif %}
+                {% if produtor.email %}
+                    <a class="btn btn-p btn-contorno" href="mailto:{{ produtor.email }}">Contato</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <section class="secao">
+        <div class="secao-cabecalho">
+            <div>
+                <h2 class="secao-titulo">Próximos eventos</h2>
+                <p class="secao-apoio">{{ total }} evento{{ total|pluralize }} confirmado{{ total|pluralize }}.</p>
+            </div>
+        </div>
+
+        {% if pagina.object_list %}
+            <div class="grade-eventos">
+                {% for evento in pagina %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+            </div>
+            {% include "eventos/partials/paginacao.html" %}
+        {% else %}
+            <div class="estado-vazio">
+                {% icone "calendario" 40 %}
+                <h3>Nenhum evento marcado</h3>
+                <p>Este produtor não tem programação confirmada no momento.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if passados %}
+        <section class="secao">
+            <div class="secao-cabecalho">
+                <div><h2 class="secao-titulo">Já aconteceram</h2></div>
+            </div>
+            <ul class="lista-simples">
+                {% for evento in passados %}
+                    <li>
+                        <a href="{{ evento.get_absolute_url }}">{{ evento.nome }}</a>
+                        <span class="lista-simples-meta">{{ evento.data|date:"j \d\e F \d\e Y" }} · {{ evento.local }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

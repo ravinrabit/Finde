@@ -1,0 +1,43 @@
+{% comment %}
+A tag {% querystring %} do Django JÁ devolve a string começando com "?".
+O template escrevia href="?{% querystring page=2 %}", o que gerava "??page=2":
+o servidor lê a chave "?page", o parâmetro "page" nunca chega, e toda a
+paginação devolvia sempre a página 1. Aqui usamos querystring_pagina, que
+monta o link inteiro preservando os filtros ativos.
+{% endcomment %}
+{% if pagina.has_other_pages %}
+<nav class="paginacao" aria-label="Paginação de resultados">
+    {% if pagina.has_previous %}
+        <a class="paginacao-link" href="{% querystring_pagina pagina.previous_page_number %}" rel="prev">
+            <span aria-hidden="true">←</span> Anterior
+        </a>
+    {% endif %}
+
+    {% for numero in pagina.paginator.page_range %}
+        {% if numero == pagina.number %}
+            <a class="paginacao-link paginacao-atual" href="{% querystring_pagina numero %}" aria-current="page">
+                {{ numero }}<span class="so-leitor"> (página atual)</span>
+            </a>
+        {% elif numero == 1 or numero == pagina.paginator.num_pages %}
+            <a class="paginacao-link" href="{% querystring_pagina numero %}">
+                {{ numero }}<span class="so-leitor"> — ir para a página {{ numero }}</span>
+            </a>
+        {% elif numero > pagina.number|add:-3 and numero < pagina.number|add:3 %}
+            <a class="paginacao-link" href="{% querystring_pagina numero %}">
+                {{ numero }}<span class="so-leitor"> — ir para a página {{ numero }}</span>
+            </a>
+        {% elif numero == pagina.number|add:-3 or numero == pagina.number|add:3 %}
+            <span class="paginacao-vazio" aria-hidden="true">…</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if pagina.has_next %}
+        <a class="paginacao-link" href="{% querystring_pagina pagina.next_page_number %}" rel="next">
+            Próxima <span aria-hidden="true">→</span>
+        </a>
+    {% endif %}
+</nav>
+<p class="paginacao-resumo" role="status">
+    Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+</p>
+{% endif %}

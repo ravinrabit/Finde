@@ -1,0 +1,10 @@
+# Núcleo. O site inteiro roda com estas quatro dependências.
+#
+# A ingestão de eventos, a geocodificação, o rate limiting, a exportação .ics
+# e a busca tolerante a acento foram escritas sobre a biblioteca padrão de
+# propósito: cada pacote a mais é uma superfície de atualização, de CVE e de
+# quebra em deploy, e nenhum deles resolvia um problema que valesse isso.
+Django>=6.0,<6.1
+python-decouple==3.8
+Pillow>=11.0
+whitenoise>=6.8

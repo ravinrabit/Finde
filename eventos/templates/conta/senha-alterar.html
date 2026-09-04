@@ -1,0 +1,17 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Alterar senha — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Trocar a senha da sua conta{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Alterar senha</h1>
+    <p class="conta-apoio">Confirme a senha atual e escolha uma nova.</p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "eventos/partials/campo.html" with campo=form.old_password %}
+        {% include "eventos/partials/campo.html" with campo=form.new_password1 %}
+        {% include "eventos/partials/campo.html" with campo=form.new_password2 %}
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Salvar nova senha</button>
+    </form>
+{% endblock %}

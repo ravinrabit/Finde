@@ -1,0 +1,14 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Link enviado — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Confira seu e-mail{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Link enviado</h1>
+    <p class="conta-apoio">
+        Se existe uma conta com esse e-mail, o link de redefinição já está a caminho.
+        Ele vale por pouco tempo, então use assim que receber.
+    </p>
+    <p class="conta-apoio">Não encontrou? Verifique a caixa de spam antes de tentar de novo.</p>
+    <a class="btn btn-primario btn-g btn-cheio" href="{% url 'login' %}">Voltar para o login</a>
+{% endblock %}

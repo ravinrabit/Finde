@@ -1,0 +1,26 @@
+{% comment %}
+Chips dos filtros ativos. O link de remoção usa querystring_sem/remover_valor,
+que reconstroem a querystring de verdade — o template antigo concatenava
+"?{% querystring page=None %}categoria=", produzindo "??…&categoria=" e
+mantendo o filtro na prática.
+{% endcomment %}
+{% if filtros_ativos %}
+<div class="fichas">
+    {% for filtro in filtros_ativos %}
+        {% if filtro.nome == "acesso" %}
+            <a class="ficha" href="{% remover_valor 'acesso' filtro.valor %}">
+                <span>{{ filtro.rotulo }}</span>
+                <span aria-hidden="true">✕</span>
+                <span class="so-leitor">Remover o filtro {{ filtro.campo }}: {{ filtro.rotulo }}</span>
+            </a>
+        {% else %}
+            <a class="ficha" href="{% querystring_sem filtro.nome %}">
+                <span>{{ filtro.rotulo }}</span>
+                <span aria-hidden="true">✕</span>
+                <span class="so-leitor">Remover o filtro {{ filtro.campo }}: {{ filtro.rotulo }}</span>
+            </a>
+        {% endif %}
+    {% endfor %}
+    <a class="ficha-limpar" href="{{ request.path }}">Limpar tudo</a>
+</div>
+{% endif %}

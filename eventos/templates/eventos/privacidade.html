@@ -1,0 +1,88 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Política de privacidade — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Como a Finde trata seus dados pessoais.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Política de privacidade</h1>
+        <p class="prosa-data">Atualizado em {{ atualizado_em }}</p>
+    </div>
+
+    <div class="prosa">
+        <p>
+            Esta política explica quais dados a {{ SITE_NOME }} coleta, por que coleta e o que você pode fazer
+            a respeito. Ela segue a Lei Geral de Proteção de Dados (Lei 13.709/2018).
+        </p>
+
+        <h2>Dados que coletamos</h2>
+        <ul>
+            <li><strong>Cadastro:</strong> nome e e-mail, informados por você ao criar a conta.</li>
+            <li><strong>Uso da plataforma:</strong> ingressos reservados, eventos favoritados e eventos publicados.</li>
+            <li><strong>Técnicos:</strong> cookie de sessão para manter você conectado e cookie de segurança contra falsificação de requisição.</li>
+        </ul>
+        <p>Não coletamos dados de pagamento e não usamos cookies de publicidade ou rastreamento de terceiros.</p>
+
+        <h2>Por que usamos</h2>
+        <ul>
+            <li>Autenticar você e manter a sessão ativa.</li>
+            <li>Registrar e exibir suas reservas e favoritos.</li>
+            <li>Enviar e-mails operacionais, como redefinição de senha.</li>
+            <li>Publicar os eventos que você cadastra como organizador.</li>
+        </ul>
+
+        <h2>Compartilhamento</h2>
+        <p>
+            Não vendemos dados pessoais. Quando você reserva um ingresso, o organizador do evento pode receber
+            as informações necessárias para validar sua entrada. Eventos publicados por você ficam visíveis
+            publicamente, incluindo o nome do organizador informado.
+        </p>
+
+        <h2>Retenção</h2>
+        <p>
+            Mantemos os dados enquanto sua conta existir. Registros de ingressos são mantidos pelo período
+            necessário para comprovação junto ao organizador.
+        </p>
+
+        <h2>Seus direitos</h2>
+        <p>
+            A LGPD garante que você veja, corrija, leve embora e apague seus dados.
+            No {{ SITE_NOME }}, o mais importante disso é automático e não depende de pedir nada
+            a ninguém — está em <a href="{% url 'minha_privacidade' %}">Meus dados</a>:
+        </p>
+        <ul class="lista-marcada">
+            <li>
+                <strong>Acesso e portabilidade:</strong> baixe um arquivo JSON com tudo o que
+                guardamos sobre você — conta, ingressos, favoritos, eventos publicados e o
+                registro de consentimento.
+            </li>
+            <li>
+                <strong>Exclusão:</strong> apague sua conta, ingressos e favoritos na hora.
+                Os eventos que você publicou continuam públicos, sem vínculo com você, porque
+                são compromissos que outras pessoas já organizaram a agenda em torno.
+            </li>
+            <li>
+                <strong>Correção:</strong> a senha muda em
+                <a href="{% url 'password_change' %}">trocar senha</a>. Para nome e e-mail, escreva
+                para o contato abaixo.
+            </li>
+            <li>
+                <strong>Revogar consentimento:</strong> equivale a excluir a conta, já que o
+                tratamento existe para operar o serviço que você usa.
+            </li>
+        </ul>
+        <p>
+            Para o que não estiver ali, o encarregado de dados responde em
+            <a href="mailto:{{ email_lgpd }}">{{ email_lgpd }}</a>, ou pela
+            <a href="{% url 'contato' %}">página de contato</a>. Prazo de resposta: 15 dias.
+        </p>
+
+        <h2>Segurança</h2>
+        <p>
+            Senhas são armazenadas com algoritmo de hash, nunca em texto puro. O tráfego é servido sobre HTTPS
+            em produção, com política de segurança de conteúdo para reduzir risco de injeção de scripts.
+        </p>
+    </div>
+</div>
+{% endblock %}

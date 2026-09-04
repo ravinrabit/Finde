@@ -1,0 +1,17 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Acesso negado — {{ SITE_NOME }}{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="erro-pagina">
+        <p class="erro-codigo">403</p>
+        <h1>Você não tem acesso a isso</h1>
+        <p class="pagina-apoio">Entre com a conta certa ou volte para a agenda.</p>
+        <div class="bilhete-acoes">
+            <a class="btn btn-primario btn-g" href="{% url 'login' %}">Entrar</a>
+            <a class="btn btn-contorno btn-g" href="{% url 'home' %}">Ir para a home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

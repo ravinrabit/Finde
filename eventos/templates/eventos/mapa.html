@@ -1,0 +1,55 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Mapa de eventos de Brasília — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Veja no mapa o que está acontecendo perto de você em Brasília e no Distrito Federal.{% endblock %}
+{% block nav_mapa %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Eventos no mapa</h1>
+        <p class="pagina-apoio">
+            Cada marcador é um evento confirmado. Toque para ver quando, onde e quanto custa.
+        </p>
+    </div>
+
+    <div class="pagina-acoes">
+        <button type="button" class="btn btn-contorno" data-perto-de-mim data-raio="5">
+            {% icone "pino" 16 %} <span data-rotulo>Perto de mim</span>
+        </button>
+        <a class="btn btn-contorno" href="{% url 'lista_eventos' %}{% querystring_sem 'page' %}">
+            {% icone "vazio" 16 %} Ver como lista
+        </a>
+    </div>
+    <p class="aviso aviso-erro" data-localizacao-erro hidden role="status">
+        Não conseguimos acessar sua localização. Verifique a permissão do navegador.
+    </p>
+
+    {% include "eventos/partials/fichas-filtro.html" %}
+
+    <p class="resultados-total" role="status">
+        <strong data-mapa-total>{{ total }}</strong> evento{{ total|pluralize }} com endereço localizado
+    </p>
+
+    {# O mapa é progressivo: sem JS, o link abaixo continua levando ao catálogo. #}
+    <div class="mapa-caixa"
+         data-mapa="{{ url_dados }}"
+         data-lat="{{ centro_mapa.0|stringformat:'s' }}"
+         data-lon="{{ centro_mapa.1|stringformat:'s' }}"
+         data-zoom="11"
+         role="application"
+         aria-label="Mapa com os eventos filtrados">
+        <noscript>
+            <p class="mapa-erro">
+                O mapa precisa de JavaScript.
+                <a href="{% url 'lista_eventos' %}">Ver a agenda em lista</a>.
+            </p>
+        </noscript>
+    </div>
+
+    <p class="mapa-nota">
+        Alguns locais ainda não têm endereço exato e aparecem no centro da região administrativa.
+        Confira sempre o endereço na página do evento.
+    </p>
+</div>
+{% endblock %}

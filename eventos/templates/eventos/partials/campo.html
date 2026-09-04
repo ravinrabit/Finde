@@ -1,0 +1,35 @@
+{% comment %}
+Campo de formulário acessível.
+
+O que mudou: o erro e a ajuda agora são ligados ao input por aria-describedby,
+e o input inválido recebe aria-invalid. Sem isso, um leitor de tela anuncia
+"campo obrigatório" sem nunca dizer qual é o problema — a mensagem de erro
+existia visualmente e era invisível para quem não enxerga.
+{% endcomment %}
+<div class="campo-grupo {% if campo.errors %}campo-invalido{% endif %}">
+    {% if campo.errors %}
+        {% comment %} O widget é renderizado com os atributos extras via attrs. {% endcomment %}
+    {% endif %}
+
+    {% if campo.field.widget.input_type == "checkbox" %}
+        <div class="campo-marcacao">
+            {{ campo }}
+            <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+        </div>
+    {% else %}
+        <label for="{{ campo.id_for_label }}">
+            {{ campo.label }}{% if not campo.field.required %} <span class="campo-opcional">(opcional)</span>{% endif %}
+        </label>
+        {{ campo }}
+    {% endif %}
+
+    {% if campo.help_text %}
+        <p class="campo-ajuda" id="ajuda-{{ campo.auto_id }}">{{ campo.help_text }}</p>
+    {% endif %}
+
+    {% if campo.errors %}
+        <div class="campo-erros" id="erro-{{ campo.auto_id }}" role="alert">
+            {% for erro in campo.errors %}<p class="campo-erro">{% icone "alerta" 14 %} {{ erro }}</p>{% endfor %}
+        </div>
+    {% endif %}
+</div>

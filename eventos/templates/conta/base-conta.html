@@ -1,0 +1,42 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#150a1e">
+<meta name="robots" content="noindex">
+<title>{% block titulo %}{{ SITE_NOME }}{% endblock %}</title>
+<meta name="description" content="{% block descricao %}Acesse sua conta na {{ SITE_NOME }}.{% endblock %}">
+<link rel="icon" href="{% static 'img/favicon-32.png' %}" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,600..800&family=Inter:wght@400..600&display=swap">
+<link rel="stylesheet" href="{% static 'css/finde.css' %}">
+</head>
+<body>
+
+<div class="conta">
+    <aside class="conta-arte">
+        <img class="conta-arte-fundo" src="{% static 'img/skyline-brasilia.jpg' %}" alt="" width="767" height="566">
+        <div class="conta-arte-topo">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'img/logo-finde.png' %}" alt="{{ SITE_NOME }}" width="560" height="174">
+            </a>
+        </div>
+        <div class="conta-arte-texto">
+            <h2>{% block arte_titulo %}O que acontece em Brasília, num só lugar{% endblock %}</h2>
+            <p>{% block arte_texto %}Shows, festivais, teatro e cultura no Distrito Federal.{% endblock %}</p>
+        </div>
+    </aside>
+
+    <main class="conta-form">
+        <div class="conta-caixa">
+            <a class="conta-voltar" href="{% url 'home' %}">{% icone "seta-esquerda" 16 %} Voltar ao site</a>
+            {% block formulario %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<script src="{% static 'js/finde.js' %}" defer></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Inscritos em {{ evento.nome }} — {{ SITE_NOME }}{% endblock %}
+{% block nav_meus_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <nav class="trilha" aria-label="Você está aqui">
+        <a href="{% url 'meus_eventos' %}">Meus eventos</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Inscritos</span>
+    </nav>
+
+    <div class="pagina-topo">
+        <h1>Inscritos</h1>
+        <p class="pagina-apoio">
+            <a href="{{ evento.get_absolute_url }}">{{ evento.nome }}</a> ·
+            {{ evento|intervalo_datas }}
+        </p>
+    </div>
+
+    <div class="painel-numeros">
+        <div class="painel-numero"><strong>{{ total }}</strong><span>reserva{{ total|pluralize }}</span></div>
+        {% if evento.capacidade %}
+            <div class="painel-numero"><strong>{{ vagas }}</strong><span>vaga{{ vagas|pluralize }} livre{{ vagas|pluralize }}</span></div>
+            <div class="painel-numero"><strong>{{ evento.capacidade }}</strong><span>capacidade</span></div>
+        {% endif %}
+    </div>
+
+    <div class="pagina-acoes">
+        <a class="btn btn-contorno" href="?formato=csv">Baixar CSV</a>
+    </div>
+
+    {% if pagina.object_list %}
+        <div class="tabela-rolagem">
+            <table class="tabela">
+                <caption class="so-leitor">Pessoas com reserva confirmada em {{ evento.nome }}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">E-mail</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Situação</th>
+                        <th scope="col">Reservado em</th>
+                        <th scope="col"><span class="so-leitor">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ingresso in pagina %}
+                        <tr>
+                            <td><code>{{ ingresso.codigo_curto }}</code></td>
+                            <td>{{ ingresso.usuario.get_full_name|default:"—" }}</td>
+                            <td>{{ ingresso.usuario.email }}</td>
+                            <td>{{ ingresso.get_tipo_display }}</td>
+                            <td>{{ ingresso.get_status_display }}</td>
+                            <td>{{ ingresso.data_compra|date:"d/m/Y H:i" }}</td>
+                            <td><a href="{% url 'validar_ingresso' ingresso.codigo %}">Check-in</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "eventos/partials/paginacao.html" %}
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "ingresso" 40 %}
+            <h2>Ninguém reservou ainda</h2>
+            <p>Divulgue o link do evento. As reservas aparecem aqui em tempo real.</p>
+            <a class="btn btn-primario" href="{{ evento.get_absolute_url }}">Ver a página do evento</a>
+        </div>
+    {% endif %}
+
+    <p class="nota-privacidade">
+        {% icone "alerta" 15 %}
+        Estes são dados pessoais de terceiros. Use apenas para operar este evento, conforme os
+        <a href="{% url 'termos' %}">Termos de uso</a> e a <a href="{% url 'privacidade' %}">Política de Privacidade</a>.
+    </p>
+</div>
+{% endblock %}

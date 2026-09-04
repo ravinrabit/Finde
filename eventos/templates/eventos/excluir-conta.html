@@ -1,0 +1,50 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Excluir conta — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Exclusão definitiva da sua conta no {{ SITE_NOME }}.{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Excluir sua conta</h1>
+        <p class="pagina-apoio">Leia com atenção. Esta ação é definitiva.</p>
+    </div>
+
+    <div class="cartao cartao-perigo">
+        <h2>O que vai acontecer</h2>
+        <ul class="lista-marcada">
+            <li><strong>{{ total_ingressos }} ingresso{{ total_ingressos|pluralize }}</strong> serão apagados. Você perde o acesso a reservas ainda válidas.</li>
+            <li><strong>{{ total_favoritos }} favorito{{ total_favoritos|pluralize }}</strong> serão apagados.</li>
+            <li>Seu nome, e-mail e senha serão removidos do banco de dados.</li>
+            {% if total_eventos %}
+                <li>
+                    <strong>{{ total_eventos }} evento{{ total_eventos|pluralize }} que você publicou</strong>
+                    continuam no ar, sem vínculo com você. Apagá-los tiraria da agenda um
+                    compromisso público e prejudicaria quem já reservou.
+                    Se precisar remover algum, cancele antes em
+                    <a href="{% url 'meus_eventos' %}">Meus eventos</a>.
+                </li>
+            {% endif %}
+        </ul>
+        <p>
+            Quer levar seus dados antes?
+            <a href="{% url 'exportar_meus_dados' %}">Baixe o arquivo JSON</a>.
+        </p>
+    </div>
+
+    <form method="post" class="formulario" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="aviso aviso-erro" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% for campo in form %}
+            {% include "eventos/partials/campo.html" %}
+        {% endfor %}
+
+        <div class="formulario-acoes">
+            <button type="submit" class="btn btn-perigo btn-g">Excluir minha conta definitivamente</button>
+            <a class="btn btn-texto" href="{% url 'minha_privacidade' %}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

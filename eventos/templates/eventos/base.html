@@ -1,0 +1,198 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#150a1e">
+
+{% comment %}
+O manifest.webmanifest já cobre Chrome/Android. O Safari/iOS historicamente
+ignora boa parte dele e depende destas tags proprietárias para abrir em tela
+cheia (sem a barra do Safari) quando adicionado à tela de início.
+{% endcomment %}
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{ SITE_NOME }}">
+
+<title>{% block titulo %}{{ SITE_NOME }} — eventos em Brasília{% endblock %}</title>
+<meta name="description" content="{% block descricao %}Shows, festivais, teatro, gastronomia e cultura em Brasília e no DF. Encontre o que fazer hoje, no fim de semana ou no mês.{% endblock %}">
+{% comment %}
+A canônica precisa ignorar a querystring: /eventos/?page=2&ordenar=preco e
+/eventos/ são a mesma página para o Google. Quando a view define "canonica"
+(páginas de faceta), ela ganha.
+{% endcomment %}
+<link rel="canonical" href="{% block canonica %}{% if canonica %}{{ canonica }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}{% endblock %}">
+{% if pagina.has_previous %}<link rel="prev" href="{% querystring_pagina pagina.previous_page_number %}">{% endif %}
+{% if pagina.has_next %}<link rel="next" href="{% querystring_pagina pagina.next_page_number %}">{% endif %}
+
+<meta property="og:site_name" content="{{ SITE_NOME }}">
+<meta property="og:type" content="{% block og_tipo %}website{% endblock %}">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="{% block og_titulo %}{{ SITE_NOME }} — eventos em Brasília{% endblock %}">
+<meta property="og:description" content="{% block og_descricao %}Shows, festivais, teatro, gastronomia e cultura em Brasília e no DF.{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% block og_imagem %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/simbolo-finde.png' %}{% endblock %}">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="{% static 'img/favicon-32.png' %}" sizes="32x32">
+<link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
+<link rel="manifest" href="{% url 'manifest' %}">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,600..800&family=Inter:wght@400..600&display=swap">
+<link rel="stylesheet" href="{% static 'css/finde.css' %}">
+{% block cabeca_extra %}{% endblock %}
+</head>
+
+<body class="{% block corpo_classe %}{% endblock %}">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="cabecalho">
+    <div class="container cabecalho-linha">
+        <a class="marca" href="{% url 'home' %}">
+            <img src="{% static 'img/logo-finde.png' %}" alt="{{ SITE_NOME }} — página inicial" width="560" height="174">
+        </a>
+
+        <nav class="nav-principal" aria-label="Navegação principal">
+            <a class="nav-link" href="{% url 'lista_eventos' %}" {% block nav_eventos %}{% endblock %}>Eventos</a>
+            <a class="nav-link" href="{% url 'eventos_fim_de_semana' %}">Fim de semana</a>
+            <a class="nav-link" href="{% url 'eventos_gratuitos' %}">Gratuitos</a>
+            <a class="nav-link" href="{% url 'mapa_eventos' %}" {% block nav_mapa %}{% endblock %}>Mapa</a>
+            <a class="nav-link" href="{% url 'lista_locais' %}" {% block nav_locais %}{% endblock %}>Locais</a>
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'meus_ingressos' %}" {% block nav_ingressos %}{% endblock %}>Ingressos</a>
+                <a class="nav-link" href="{% url 'meus_eventos' %}" {% block nav_meus_eventos %}{% endblock %}>Meus eventos</a>
+            {% endif %}
+        </nav>
+
+        <div class="cabecalho-acoes">
+            <button type="button" class="btn btn-p btn-fantasma-claro" data-instalar-app hidden>Instalar app</button>
+            {% if user.is_authenticated %}
+                <a class="btn btn-p btn-claro" href="{% url 'criar_evento' %}">Publicar evento</a>
+                <span class="saudacao">{{ user.first_name|default:user.email }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-p btn-fantasma-claro">Sair</button>
+                </form>
+            {% else %}
+                <a class="btn btn-p btn-fantasma-claro" href="{% url 'login' %}">Entrar</a>
+                <a class="btn btn-p btn-destaque" href="{% url 'cadastro' %}">Criar conta</a>
+            {% endif %}
+        </div>
+
+        <button type="button" class="menu-gatilho" data-menu-gatilho aria-expanded="false" aria-controls="gaveta-menu" aria-label="Abrir menu">
+            {% icone "ingresso" 20 %}
+            <span class="so-leitor">Menu</span>
+        </button>
+    </div>
+</header>
+
+<div class="gaveta" id="gaveta-menu" data-gaveta role="dialog" aria-modal="true" aria-label="Menu de navegação">
+    <button type="button" class="gaveta-fundo" data-gaveta-fechar tabindex="-1" aria-hidden="true"></button>
+    <div class="gaveta-painel">
+        <div class="gaveta-topo">
+            <img class="gaveta-logo" src="{% static 'img/logo-finde.png' %}" alt="" width="560" height="174">
+            <button type="button" class="gaveta-fechar" data-gaveta-fechar aria-label="Fechar menu">✕</button>
+        </div>
+
+        <nav class="gaveta-nav" aria-label="Navegação">
+            <a href="{% url 'lista_eventos' %}">Todos os eventos</a>
+            <a href="{% url 'eventos_hoje' %}">Acontecendo hoje</a>
+            <a href="{% url 'eventos_fim_de_semana' %}">Fim de semana</a>
+            <a href="{% url 'eventos_gratuitos' %}">Eventos gratuitos</a>
+            <a href="{% url 'mapa_eventos' %}">Mapa de eventos</a>
+            <a href="{% url 'lista_locais' %}">Locais</a>
+            <a href="{% url 'lista_produtores' %}">Produtores</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'meus_ingressos' %}">Meus ingressos</a>
+                <a href="{% url 'meus_favoritos' %}">Favoritos</a>
+                <a href="{% url 'meus_eventos' %}">Meus eventos</a>
+                <a href="{% url 'minha_privacidade' %}">Meus dados</a>
+            {% endif %}
+            <a href="{% url 'ajuda' %}">Ajuda</a>
+        </nav>
+
+        <div class="gaveta-rodape">
+            <button type="button" class="btn btn-claro btn-cheio" data-instalar-app hidden>Instalar o app do Finde</button>
+            {% if user.is_authenticated %}
+                <a class="btn btn-destaque btn-cheio" href="{% url 'criar_evento' %}">Publicar evento</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-claro btn-cheio">Sair</button>
+                </form>
+            {% else %}
+                <a class="btn btn-destaque btn-cheio" href="{% url 'cadastro' %}">Criar conta</a>
+                <a class="btn btn-claro btn-cheio" href="{% url 'login' %}">Entrar</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<main id="conteudo">
+    {% if messages %}
+        <div class="container">
+            <div class="avisos" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="aviso aviso-{{ message.tags|default:'info' }}">
+                        <span>{{ message }}</span>
+                        <button type="button" class="aviso-fechar" data-aviso-fechar aria-label="Dispensar aviso">✕</button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% block conteudo %}{% endblock %}
+</main>
+
+<footer class="rodape">
+    <div class="container">
+        <div class="rodape-grade">
+            <div class="rodape-marca">
+                <img src="{% static 'img/logo-finde.png' %}" alt="{{ SITE_NOME }}" width="560" height="174">
+                <p>{{ SITE_DESCRICAO }} Descubra shows, festivais, teatro e cultura no Distrito Federal.</p>
+            </div>
+
+            <div class="rodape-coluna">
+                <h4>Descobrir</h4>
+                <a href="{% url 'lista_eventos' %}">Todos os eventos</a>
+                <a href="{% url 'eventos_hoje' %}">Hoje</a>
+                <a href="{% url 'eventos_fim_de_semana' %}">Fim de semana</a>
+                <a href="{% url 'eventos_gratuitos' %}">Gratuitos</a>
+                <a href="{% url 'mapa_eventos' %}">Mapa</a>
+                <a href="{% url 'lista_locais' %}">Locais</a>
+                <a href="{% url 'lista_produtores' %}">Produtores</a>
+            </div>
+
+            <div class="rodape-coluna">
+                <h4>Organizadores</h4>
+                <a href="{% url 'criar_evento' %}">Publicar um evento</a>
+                <a href="{% url 'colar_link' %}">Importar de um link</a>
+                <a href="{% url 'meus_eventos' %}">Painel de eventos</a>
+                <a href="{% url 'ajuda' %}">Como funciona</a>
+            </div>
+
+            <div class="rodape-coluna">
+                <h4>Finde</h4>
+                <a href="{% url 'sobre' %}">Sobre</a>
+                <a href="{% url 'ajuda' %}">Ajuda</a>
+                <a href="{% url 'contato' %}">Contato</a>
+                <a href="{% url 'termos' %}">Termos de uso</a>
+                <a href="{% url 'privacidade' %}">Privacidade</a>
+                <a href="{% url 'agenda_ics' %}">Assinar a agenda (.ics)</a>
+            </div>
+        </div>
+
+        <div class="rodape-base">
+            <span>© {% now "Y" %} {{ SITE_NOME }}</span>
+            <span>Feito em Brasília, DF</span>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/finde.js' %}" defer></script>
+{% block scripts_extra %}{% endblock %}
+</body>
+</html>
