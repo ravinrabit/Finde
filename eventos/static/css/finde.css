@@ -337,7 +337,7 @@ main {
 }
 
 .marca img {
-    height: 30px;
+    height: 45px;
     width: auto;
 }
 
@@ -2159,7 +2159,8 @@ select {
 }
 
 .conta-arte-topo img {
-    height: 30px;
+    height: 98px;
+    width: auto;
 }
 
 .conta-arte-texto h2 {
@@ -2371,7 +2372,8 @@ select {
 }
 
 .rodape-marca img {
-    height: 28px;
+    height: 48px;
+    width: auto;
     margin-bottom: var(--e-3);
 }
 
@@ -2795,8 +2797,8 @@ select {
 }
 
 .atalho-botao {
-    border: 0;
     cursor: pointer;
+    background: transparent;
     font: inherit;
 }
 
