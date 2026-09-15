@@ -1,370 +1,331 @@
 # Finde
 
-Plataforma de descoberta de eventos de Brasília e do Distrito Federal.
+**Plataforma de descoberta de eventos em Brasília e no Distrito Federal.**
 
-O Finde responde a quatro perguntas, nessa ordem de prioridade:
+Um app Django que responde, nessa ordem: o que está acontecendo, onde é, o
+que tem perto de mim e quem está organizando. Venda de ingresso é
+consequência do catálogo, não o ponto de partida do produto.
 
-> O que está acontecendo em Brasília?
-> Onde é?
-> O que tem perto de mim?
-> Quem está organizando?
-
-Vender ingresso é consequência, não o ponto de partida. Isso explica várias
-decisões deste código: a home é uma agenda, não uma vitrine; locais e produtores
-são entidades de primeira classe com página própria; e a busca por proximidade
-existe no núcleo, não como funcionalidade futura.
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-6.x-092E20?logo=django&logoColor=white)
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![Licença](https://img.shields.io/badge/licença-a%20definir-lightgrey)
 
 ---
 
-## Como rodar
+## Sumário
+
+- [Visão geral](#visão-geral)
+- [Funcionalidades](#funcionalidades)
+- [Stack técnica](#stack-técnica)
+- [Arquitetura](#arquitetura)
+- [Como rodar localmente](#como-rodar-localmente)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Testes](#testes)
+- [Painel administrativo](#painel-administrativo)
+- [Fontes de eventos](#fontes-de-eventos)
+- [Automação e comandos](#automação-e-comandos)
+- [Banco de dados](#banco-de-dados)
+- [Armazenamento de mídia](#armazenamento-de-mídia)
+- [Segurança](#segurança)
+- [LGPD](#lgpd)
+- [Observabilidade](#observabilidade)
+- [Acessibilidade](#acessibilidade)
+- [Roadmap](#roadmap)
+- [Equipe](#equipe)
+- [Licença](#licença)
+
+---
+
+## Visão geral
+
+O Finde é uma agenda hiperlocal: a home é uma lista de eventos ordenada por
+relevância e proximidade, não uma vitrine de compra. Locais e produtores são
+entidades de primeira classe, com página própria e SEO próprio — não apenas
+metadado de um evento.
+
+O catálogo é alimentado por múltiplas fontes (importação automática, link
+colado pelo produtor, integração com Sympla) e passa por uma fila de
+moderação antes de qualquer coisa ir ao ar.
+
+## Funcionalidades
+
+- Busca e listagem de eventos com filtro por categoria, região, data e preço
+- Páginas dedicadas para eventos, locais e produtores, com dados estruturados
+  (`schema.org`) para SEO
+- Mapa interativo (Leaflet) com geolocalização e seletor de região como
+  fallback
+- Reserva de ingresso com controle de capacidade e limite por pessoa
+- Favoritos, exportação de agenda (`.ics`) e lembrete por e-mail
+- PWA instalável, com service worker e página offline
+- Painel administrativo dedicado para moderação de eventos e verificação de
+  produtores (ver [seção própria](#painel-administrativo))
+- Exportação e exclusão de dados pessoais em autoatendimento (LGPD)
+- Rate limiting em login, cadastro, recuperação de senha, reserva e busca
+
+## Stack técnica
+
+| Camada | Tecnologia |
+|---|---|
+| Backend | Python 3.12, Django 6.x |
+| Banco de dados | SQLite (padrão) ou PostgreSQL |
+| Cache / rate limit | Cache do Django (`locmem`, `db` ou Redis) |
+| Frontend | CSS e JS próprios, sem framework — Leaflet.js para mapas |
+| Arquivos estáticos | WhiteNoise |
+| Mídia | Disco local ou S3-compatível (S3, Cloudflare R2, Backblaze B2) |
+| E-mail transacional | SMTP configurável via `.env` |
+| Observabilidade | Sentry (opcional), healthchecks próprios |
+| PWA | Service worker e manifest nativos |
+
+## Arquitetura
+
+App único, `eventos`, com a lógica de negócio isolada em serviços — views
+tratam só HTTP, services concentram regra testável sem cliente HTTP.
+
+```
+eventos/
+├── models.py         Evento, Local, Produtor, Ingresso, Favorito, AceiteDeTermos
+├── views.py          views públicas: recebem, delegam, respondem
+├── views_painel.py   views do painel administrativo
+├── forms.py          validação de entrada e acessibilidade dos campos
+├── decorators.py     staff_requerido — 404 para quem não é staff
+├── ratelimit.py      limite de tentativas sobre o cache
+├── middleware.py      endurecimento do admin nativo
+├── signals.py          User.username sincronizado com User.email
+├── emails.py           e-mails transacionais
+├── services/           regra de negócio testável sem cliente HTTP
+│   ├── busca.py           busca tolerante a acento e caixa
+│   ├── reservas.py        capacidade, limite por pessoa, concorrência
+│   ├── catalogo.py        resolução de Local/Produtor e política de moderação
+│   ├── moderacao.py       publicar/rejeitar/arquivar evento, verificar produtor
+│   ├── painel.py          estatísticas e filas do painel administrativo
+│   ├── calendario.py      exportação .ics (RFC 5545)
+│   ├── geocoding.py       Nominatim com cache e limite de taxa
+│   ├── imagens.py         variantes WebP 400/800/1200
+│   └── lgpd.py            exportação e exclusão de dados
+└── ingestao/            entrada de eventos externos
+    ├── base.py               EventoImportado + salvar_importados
+    ├── http.py               urllib com robots.txt, timeout e teto de tamanho
+    ├── mapa_nas_nuvens.py    API pública do GDF
+    ├── jsonld.py             schema.org/Event e "colar link"
+    ├── ics.py                feeds iCalendar
+    ├── parceiros.py          espaços com acordo
+    ├── sympla_api.py         token cedido pelo produtor
+    └── sympla.py             legado, por Selenium, desligado por padrão
+```
+
+**Contrato de ingestão:** toda fonte produz `EventoImportado` e passa por
+`salvar_importados()`. É esse ponto único de gravação que torna trocar de
+fonte um detalhe e não uma reescrita — e garante que todo evento importado
+entra como **pendente**, sem exceção.
+
+## Como rodar localmente
+
+### Pré-requisitos
+
+- Python 3.12+
+- pip e venv
+
+### Instalação
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+git clone https://github.com/ravinrabit/Finde.git
+cd Finde
+
+python -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
 
-cp .env.example .env
-python manage.py gerar_secret_key      # cole a chave no .env
+cp .env.example .env              # ajuste as variáveis (ver seção abaixo)
+python manage.py gerar_secret_key # cole a SECRET_KEY gerada no .env
 
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py semear_demo           # catálogo de exemplo, opcional
+python manage.py semear_demo      # opcional: catálogo de exemplo
+
 python manage.py runserver
 ```
 
-O site sobe em `http://localhost:8000`. O painel administrativo fica em
-`/admin/` por padrão, ou no caminho que você definir em `ADMIN_URL`.
+O site sobe em `http://localhost:8000`. O admin nativo do Django fica em
+`/admin/` por padrão, ou no caminho definido em `ADMIN_URL`.
 
-### Testes
+## Variáveis de ambiente
+
+Todas as chaves ficam documentadas e comentadas em `.env.example`. Resumo por
+categoria:
+
+| Categoria | Variáveis |
+|---|---|
+| Núcleo | `DJANGO_ENV`, `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SITE_NOME`, `SITE_DOMINIO` |
+| Banco de dados | `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` |
+| Cache | `CACHE_BACKEND`, `REDIS_URL` |
+| E-mail | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`, `EMAIL_CONTATO`, `EMAIL_ENCARREGADO_LGPD` |
+| Admin | `ADMIN_URL`, `ADMIN_IPS_PERMITIDOS` |
+| Mídia | `MEDIA_BACKEND`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` |
+| Integrações | `MAPA_NAS_NUVENS_URL`, `SYMPLA_SCRAPING_ATIVO`, `GEOCODING_URL`, `GEOCODING_USER_AGENT`, `GEOCODING_LIMITE_POR_EXECUCAO`, `GEOCODING_PAUSA_SEGUNDOS` |
+| Segurança/rede | `SECURE_SSL_REDIRECT`, `RATELIMIT_ATIVO` |
+| Observabilidade | `SENTRY_DSN`, `SENTRY_TRACES`, `LOG_LEVEL`, `HEALTHCHECK_TOKEN` |
+
+A escolha de ambiente (`dev`, `test`, `prod`) vem de `DJANGO_ENV`:
+
+```
+setup/settings/
+├── base.py    comum a todos os ambientes
+├── dev.py     DEBUG ligado, estáticos sem manifesto
+├── test.py    banco em memória, sem rede, sem rate limit
+└── prod.py    HTTPS obrigatório, HSTS, cookies seguros, Sentry
+```
+
+## Testes
 
 ```bash
 python manage.py test
 ```
 
-`manage.py test` força `DJANGO_ENV=test` sozinho: banco em memória, hasher
-rápido, e-mail em memória, nenhuma chamada de rede.
+`manage.py test` força `DJANGO_ENV=test` automaticamente: banco em memória,
+hasher de senha rápido, e-mail em memória, nenhuma chamada de rede real.
 
----
+## Painel administrativo
 
-## Configuração por ambiente
+Área dedicada à moderação, separada do admin nativo do Django — restrita a
+usuários `is_staff` (404, não redirecionamento, para quem não é).
 
-```
-setup/settings/
-├── base.py    tudo o que é comum
-├── dev.py     DEBUG ligado, arquivos estáticos sem manifesto
-├── test.py    banco em memória, sem rede, sem rate limit
-└── prod.py    HTTPS obrigatório, HSTS, cookies seguros, Sentry
-```
+| Rota | Função |
+|---|---|
+| `/painel-admin/` | estatísticas gerais (eventos por status, produtores pendentes, ingressos da semana) |
+| `/painel-admin/moderacao/` | fila de eventos com filtro por status e busca; publicar, rejeitar (com motivo) ou arquivar |
+| `/painel-admin/produtores/` | verificação de identidade do produtor |
 
-A escolha vem de `DJANGO_ENV` (`dev`, `test`, `prod`). O
-`DJANGO_SETTINGS_MODULE` continua sendo `setup.settings`, então nenhum script
-de deploy existente precisa mudar.
+A regra de publicar/rejeitar/arquivar vive em `eventos/services/moderacao.py`
+— fonte única, usada tanto pelas ações do admin nativo quanto pelas views do
+painel, para as duas superfícies nunca divergirem. `eventos/services/painel.py`
+cuida só das consultas de estatística e fila.
 
-Todas as chaves estão em `.env.example`, comentadas.
-
----
-
-## Segurança
-
-### A SECRET_KEY antiga está comprometida
-
-O `.env` esteve versionado no Git. **A chave que estava lá deve ser
-considerada pública**: com ela, qualquer pessoa forja cookie de sessão e token
-de recuperação de senha. Trocar a chave no `.env` não basta, porque ela
-continua no histórico do repositório.
-
-```bash
-python manage.py gerar_secret_key      # imprime a chave e o roteiro completo
-
-# 1. cole a chave nova no .env e reinicie
-# 2. derrube as sessões existentes
-python manage.py shell -c "from django.contrib.sessions.models import Session; Session.objects.all().delete()"
-
-# 3. limpe o histórico do Git
-pip install git-filter-repo
-git filter-repo --path .env --invert-paths --force
-git push --force --all                 # combine com quem já clonou
-
-# 4. rotacione o resto: senha de SMTP, credencial de banco, token de storage
-```
-
-Se o repositório for público ou já tiver sido clonado por terceiros, considere-o
-queimado e recrie.
-
-### Rate limiting
-
-`eventos/ratelimit.py` implementa um contador de janela fixa sobre o cache do
-Django. Protege login, cadastro, recuperação de senha, reserva, busca,
-favoritar, colar link e exclusão de conta. Os limites ficam em
-`settings.RATELIMITS`.
-
-Não usa `django-ratelimit` nem `django-axes` de propósito: o projeto inteiro
-tem quatro dependências, e um contador de 80 linhas resolvia o problema real.
-
-**Limitação:** depende do cache. Com `CACHE_BACKEND=locmem` e vários workers,
-cada processo tem o próprio contador e o limite efetivo se multiplica. Em
-produção use `db` (`manage.py createcachetable`, sem pacote novo) ou `redis`.
-
-### Admin
-
-`ADMIN_URL` move o painel para um caminho não óbvio — não substitui
-autenticação, mas tira o `/admin/` das varreduras automatizadas.
-`ADMIN_IPS_PERMITIDOS` restringe por origem e responde **404**, não 403: negar
-a existência entrega menos informação do que negar a permissão.
-
----
-
-## Arquitetura
-
-App único, `eventos`, com a lógica de negócio separada em serviços.
-
-```
-eventos/
-├── models.py        Evento, Local, Produtor, Ingresso, Favorito, AceiteDeTermos
-├── views.py         só HTTP: recebe, delega, responde
-├── forms.py         validação de entrada e acessibilidade dos campos
-├── ratelimit.py     limite de tentativas sobre o cache
-├── middleware.py    endurecimento do admin
-├── emails.py        e-mails transacionais
-├── services/        regra de negócio testável sem cliente HTTP
-│   ├── busca.py         busca tolerante a acento e caixa
-│   ├── reservas.py      capacidade, limite por pessoa, concorrência
-│   ├── catalogo.py      resolução de Local/Produtor e política de moderação
-│   ├── calendario.py    exportação .ics (RFC 5545)
-│   ├── geocoding.py     Nominatim com cache e limite de taxa
-│   ├── imagens.py       variantes WebP 400/800/1200
-│   └── lgpd.py          exportação e exclusão de dados
-└── ingestao/        entrada de eventos externos
-    ├── base.py              EventoImportado + salvar_importados
-    ├── http.py              urllib com robots.txt, timeout e teto de tamanho
-    ├── mapa_nas_nuvens.py   API pública do GDF
-    ├── jsonld.py            schema.org/Event e "colar link"
-    ├── ics.py               feeds iCalendar
-    ├── parceiros.py         espaços com acordo
-    ├── sympla_api.py        token cedido pelo produtor
-    └── sympla.py            LEGADO, por Selenium, desligado por padrão
-```
-
-### O contrato de ingestão
-
-Toda fonte, sem exceção, produz `EventoImportado` e passa por
-`salvar_importados()`. É o que torna trocar de fonte um detalhe em vez de uma
-reescrita. Quem grava no banco é só essa função, então a política de curadoria,
-a idempotência e o vínculo com `Local`/`Produtor` ficam num lugar só.
-
-Evento importado entra como **PENDENTE**. Nada vindo de fora vai ao ar sem
-alguém olhar.
-
----
+`eventos/signals.py` sincroniza `User.username` com `User.email` em todo
+`save()`, resolvendo na origem o caso clássico de um superuser criado via
+`createsuperuser` ficar sem conseguir logar (o formulário de login espera
+e-mail no campo de usuário).
 
 ## Fontes de eventos
 
 | Fonte | Situação | Observação |
 |---|---|---|
-| Mapa nas Nuvens | conector pronto, **volume não medido** | API pública do GDF. Rode `medir_mapa_nas_nuvens` antes de confiar. |
-| Parceiros | arquitetura pronta, **todos inativos** | 9 espaços do DF mapeados com `feed=None`. Preencha conforme cada acordo. |
-| Colar link | funcionando | O produtor cola o link do próprio evento; lemos JSON-LD ou Open Graph. |
-| Sympla por token | funcionando | O produtor conecta a conta dele. A API só devolve os eventos do dono do token. |
-| Sympla por Selenium | **legado, desligado** | Ver "Desligamento do Selenium". |
+| Mapa nas Nuvens | conector pronto, volume não medido | API pública do GDF — rode `medir_mapa_nas_nuvens` antes de confiar |
+| Parceiros | arquitetura pronta, todos inativos | 9 espaços do DF mapeados, aguardando acordo |
+| Colar link | funcionando | lê JSON-LD ou Open Graph do link enviado pelo produtor |
+| Sympla por token | funcionando | o produtor conecta a própria conta; a API só devolve os eventos do dono do token |
+| Sympla por Selenium | legado, desligado | ver `SYMPLA_SCRAPING_ATIVO` e o roteiro de desligamento no código |
 
-### Por que a Sympla não serve para agregação
-
-A API pública da Sympla devolve apenas os eventos do dono do token — não tem
-busca por cidade. Isso descarta a Sympla como fonte de catálogo, mas abre uma
-porta melhor: o produtor que já usa Sympla conecta a conta e os eventos dele
-passam a aparecer no Finde sozinhos. Vira argumento de aquisição em vez de
-risco jurídico.
-
-### Antes de confiar no Mapa nas Nuvens
-
-```bash
-python manage.py medir_mapa_nas_nuvens
-```
-
-O comando informa quantos eventos futuros existem, quais campos vêm
-preenchidos, a cobertura por região administrativa e o horizonte de datas — e
-dá um veredito. Enquanto isso não rodar, **o volume real dessa fonte é
-desconhecido** e nenhuma decisão de roadmap deveria depender dela.
-
-### Desligamento do Selenium
-
-O importador legado continua no repositório por uma razão só: desligar antes de
-as fontes novas terem volume deixaria o catálogo vazio, e catálogo vazio mata o
-produto mais rápido do que qualquer risco jurídico.
-
-Ele já vem desligado (`SYMPLA_SCRAPING_ATIVO=False`). A régua para removê-lo:
-
-```bash
-python manage.py comparar_catalogo
-```
-
-Quando o comando disser que as fontes legítimas sustentam a home:
-
-1. `rm eventos/ingestao/sympla.py`
-2. `rm requirements-scraping.txt`
-3. tirar `sympla-legado` de `FONTES` em `management/commands/importar_eventos.py`
-4. remover `SYMPLA_SCRAPING_ATIVO` de `settings/base.py` e do `.env.example`
-5. `rm eventos/scraping.py` (o atalho de compatibilidade)
-
----
-
-## Automação
-
-Nada aqui depende de alguém lembrar de rodar comando na mão.
+## Automação e comandos
 
 ```cron
-# importar, geocodificar, arquivar vencidos e limpar órfãos
 0 6 * * *  cd /app && python manage.py manutencao_catalogo >> /var/log/finde-cron.log 2>&1
-# lembrete de véspera para quem reservou
 0 10 * * * cd /app && python manage.py enviar_lembretes >> /var/log/finde-cron.log 2>&1
-# limpeza de sessões
 0 3 * * 0  cd /app && python manage.py clearsessions
 ```
 
-Cron dá conta do tamanho atual. Com Celery Beat, a mesma rotina vira uma task
-periódica chamando `call_command("manutencao_catalogo")` — não vale subir broker
-e worker só por isso enquanto cron resolve.
-
-### Comandos disponíveis
-
-| Comando | O que faz |
+| Comando | Função |
 |---|---|
-| `importar_eventos` | Importa de uma fonte ou de todas. `--simular` para conferir sem gravar. |
-| `medir_mapa_nas_nuvens` | Mede volume e qualidade da API do GDF antes de confiar nela. |
-| `comparar_catalogo` | Diz se já dá para desligar o Selenium. |
-| `geocodificar` | Preenche coordenadas via Nominatim, respeitando 1 req/s. |
-| `manutencao_catalogo` | Rotina diária completa. |
-| `enviar_lembretes` | E-mail de véspera. |
-| `gerar_variantes_imagem` | Gera os WebP 400/800/1200 das capas antigas. |
-| `gerar_secret_key` | Chave nova e roteiro de rotação. |
-| `semear_demo` | Catálogo de exemplo para desenvolvimento. |
-
----
+| `importar_eventos` | importa de uma fonte ou de todas (`--simular` para conferir sem gravar) |
+| `medir_mapa_nas_nuvens` | mede volume e qualidade da API do GDF |
+| `comparar_catalogo` | avalia se já dá para desligar o Selenium |
+| `geocodificar` | preenche coordenadas via Nominatim, 1 req/s |
+| `manutencao_catalogo` | rotina diária completa |
+| `enviar_lembretes` | e-mail de véspera para quem reservou |
+| `gerar_variantes_imagem` | gera WebP 400/800/1200 das capas antigas |
+| `gerar_secret_key` | gera chave nova e imprime o roteiro de rotação |
+| `semear_demo` | popula catálogo de exemplo para desenvolvimento |
 
 ## Banco de dados
 
-SQLite por padrão. Para PostgreSQL, basta `DB_ENGINE=postgres` no `.env`.
+SQLite por padrão; `DB_ENGINE=postgres` no `.env` habilita PostgreSQL.
 
-### Busca
-
-`Evento.busca_texto` guarda nome, resumo, descrição, local, endereço,
-organizador, cidade, categoria e região — tudo minúsculo e sem acento,
-mantido no `save()`. Buscar nessa coluna resolve, em qualquer banco:
-
-```
-rock / Rock / ROCK        -> mesma consulta
-cinema / cinéma           -> mesma consulta
-brasilia / Brasília       -> mesma consulta
-```
-
-No PostgreSQL, `services/busca.py` acrescenta full-text em português com
-ranking, e a migration `0009` cria os índices GIN de trigrama que fazem o
-`LIKE` usar índice. A migration é condicional: em SQLite ela simplesmente não
-faz nada, e o projeto continua funcionando — só sem o ganho de desempenho.
-
-`CREATE EXTENSION` exige superusuário em algumas hospedagens. Se falhar, a
-migration registra um aviso e segue: a busca continua correta.
-
----
+`Evento.busca_texto` mantém nome, resumo, descrição, local, endereço,
+organizador, cidade, categoria e região em minúsculo e sem acento — a mesma
+consulta cobre `rock`/`Rock`, `cinema`/`cinéma`, `brasilia`/`Brasília` em
+qualquer banco. No PostgreSQL, `services/busca.py` acrescenta full-text em
+português com ranking, e a migration `0009` cria os índices GIN de trigrama
+(condicional — em SQLite não faz nada, e a busca continua correta).
 
 ## Armazenamento de mídia
 
-`MEDIA_BACKEND=local` guarda no disco do servidor. **Isso não sobrevive a um
-deploy que troque de máquina ou contêiner** — as capas enviadas somem.
+`MEDIA_BACKEND=local` grava no disco do servidor — **não sobrevive** a um
+deploy que troque de máquina ou contêiner. Em produção, use
+`MEDIA_BACKEND=s3` (S3, Cloudflare R2 ou Backblaze B2,
+`pip install -r requirements-prod.txt`).
 
-Para produção, `MEDIA_BACKEND=s3` funciona com S3, Cloudflare R2 e Backblaze
-B2 (`pip install -r requirements-prod.txt`).
+Toda capa enviada gera variantes de 400, 800 e 1200 px em WebP, servidas via
+`srcset`.
 
-Toda capa enviada gera versões de 400, 800 e 1200 px em WebP, servidas por
-`srcset`. Um JPEG de 5 MB deixou de ser baixado inteiro para preencher um card
-de 400 px.
+## Segurança
 
----
+- **`ADMIN_URL`** move o admin nativo para um caminho não óbvio;
+  **`ADMIN_IPS_PERMITIDOS`** restringe por origem e responde 404, não 403.
+- **Rate limiting** próprio (`eventos/ratelimit.py`, ~80 linhas sobre o cache
+  do Django) protege login, cadastro, recuperação de senha, reserva, busca,
+  favoritar, colar link e exclusão de conta. Limites em `settings.RATELIMITS`.
+  Com `CACHE_BACKEND=locmem` e múltiplos workers, cada processo tem seu
+  próprio contador — em produção use `db` ou `redis`.
+- **`IntegracaoSympla.token`** nunca aparece em listagem, nunca entra na
+  exportação LGPD e é write-only no admin. Em produção, use criptografia em
+  repouso (o campo guarda o valor em texto no banco).
+
+> **Se o `.env` já esteve versionado no Git em algum momento**, a
+> `SECRET_KEY` correspondente deve ser tratada como pública e trocada — ela
+> permite forjar cookie de sessão e token de recuperação de senha. Trocar só
+> no `.env` não basta enquanto ela seguir no histórico do repositório; nesse
+> caso, rode `git filter-repo` (ou equivalente) antes de considerar o
+> repositório seguro.
 
 ## LGPD
 
-A página **Meus dados** (`/conta/privacidade/`) entrega, sem depender de pedido
-por e-mail:
+A página **Meus dados** (`/conta/privacidade/`) resolve em autoatendimento:
 
-- **Acesso e portabilidade:** JSON com conta, ingressos, favoritos, eventos
-  publicados e o registro de consentimento.
-- **Exclusão:** apaga conta, ingressos e favoritos. O usuário é removido do
-  banco de verdade, não desativado.
-- **Consentimento:** cada cadastro grava versão dos termos, versão da política,
-  data e IP em `AceiteDeTermos`.
+- **Acesso e portabilidade** — JSON com conta, ingressos, favoritos, eventos
+  publicados e registro de consentimento
+- **Exclusão** — remove a conta, ingressos e favoritos do banco de verdade
+  (sem desativação)
+- **Consentimento** — cada cadastro grava versão dos termos, versão da
+  política, data e IP em `AceiteDeTermos`
 
-Os eventos publicados **continuam no ar** depois da exclusão, sem vínculo com a
-pessoa. Apagá-los derrubaria compromissos públicos que terceiros já usaram para
-se planejar, e prejudicaria quem reservou.
-
----
-
-## Integrações
-
-`IntegracaoSympla.token` é credencial de terceiro. Ele nunca aparece em
-listagem, nunca entra na exportação LGPD e é write-only no admin.
-
-**Em produção, use criptografia em repouso** (pgcrypto ou disco criptografado).
-O campo guarda o token em texto no banco.
-
----
+Eventos publicados continuam no ar após a exclusão da conta, sem vínculo com
+a pessoa — apagá-los derrubaria compromissos públicos que terceiros já usaram
+para se planejar.
 
 ## Observabilidade
 
 | Endpoint | Uso |
 |---|---|
-| `/saude/` | Liveness. Barato o bastante para o balanceador chamar. |
-| `/saude/detalhado/?token=…` | Readiness: aplicação, banco, cache e storage. Protegido por `HEALTHCHECK_TOKEN`. |
+| `/saude/` | liveness — barato o bastante para o balanceador chamar |
+| `/saude/detalhado/?token=…` | readiness: aplicação, banco, cache e storage; protegido por `HEALTHCHECK_TOKEN` |
 
-Sem `HEALTHCHECK_TOKEN` configurado, o endpoint detalhado responde 404.
-
-Logs vão para o console em formato estruturado, com canais separados para
-`eventos.seguranca` e `eventos.ingestao`. Com `SENTRY_DSN`, as exceções vão
-para o Sentry (`send_default_pii=False`).
-
----
-
-## Migrations
-
-Uma migration é o retrato do banco naquele momento. Ela **não pode importar
-código do app**: se a constante mudar depois, a migration antiga passa a se
-comportar de outro jeito numa instalação limpa.
-
-A `0006` importava `eventos.constants`. Como a correção de
-`Categoria.UNIVERSITARIO` (`"universitário"` → `"universitario"`) mudaria o
-comportamento dela retroativamente, as listas foram congeladas por extenso
-dentro do arquivo. As operações continuam idênticas — o estado do schema não
-mudou.
-
-| Migration | Conteúdo |
-|---|---|
-| `0007` | Schema: Local, Produtor, IntegracaoSympla, AceiteDeTermos, capacidade, busca |
-| `0008` | Dados: extrai locais e produtores do texto livre, deduplica, corrige categoria |
-| `0009` | Índices de busca do PostgreSQL, condicionais por vendor |
-
-A `0008` é reversível e **não apaga nada**: a reversão desfaz os vínculos e
-remove só as linhas que ela criou.
-
----
+Logs estruturados no console, com canais separados para `eventos.seguranca` e
+`eventos.ingestao`. Com `SENTRY_DSN` configurado, exceções vão para o Sentry
+(`send_default_pii=False`).
 
 ## Acessibilidade
 
 - Erros de formulário ligados ao input por `aria-describedby`, com
-  `aria-invalid` e `role="alert"`.
-- `--texto-fraco` foi de `#8a7d95` (3,2:1) para `#6d6178` (5,1:1), acima do
-  mínimo AA.
-- `prefers-reduced-motion` e `prefers-color-scheme: dark` respeitados.
-- Mapa e geolocalização são progressivos: sem JavaScript, a lista continua
-  acessível.
+  `aria-invalid` e `role="alert"`
+- Contraste de texto secundário acima do mínimo AA (5,1:1)
+- `prefers-reduced-motion` e `prefers-color-scheme: dark` respeitados
+- Mapa e geolocalização são progressivos — sem JavaScript, a lista de eventos
+  continua acessível
 
----
+## Roadmap
 
-## O que ainda não foi feito
+- [ ] Medir volume real do Mapa nas Nuvens (`medir_mapa_nas_nuvens`)
+- [ ] Ativar parceiros conforme acordos forem fechados
+- [ ] Pagamento online (reserva → capacidade → estoque já existe; pedido,
+      webhook e reembolso ainda não)
+- [ ] Conferir coordenadas do metrô e das regiões administrativas antes de
+      produção (hoje aproximadas, 4 casas decimais)
 
-- **Volume do Mapa nas Nuvens não foi medido.** Rode `medir_mapa_nas_nuvens`.
-- **Nenhum parceiro está ativo.** Preencher `feed` sem acordo seria voltar a
-  raspar.
-- **Pagamento não existe.** A cadeia reserva → capacidade → estoque está
-  pronta; pedido, webhook e reembolso não. Deliberado: não faz sentido antes de
-  a infraestrutura de reserva rodar em produção.
-- **Coordenadas do metrô e das RAs são aproximadas** (4 casas decimais, de
-  fontes públicas). Conferir antes de produção.
+## Equipe
+
+Projeto desenvolvido por uma equipe de 6 pessoas, colegas de curso no SENAC.
+
+## Licença
+
+Ainda não definida.
