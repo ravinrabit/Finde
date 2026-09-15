@@ -1,23 +1,3 @@
-"""Conector do Mapa nas Nuvens — a cartografia cultural oficial do DF.
-
-Por que esta é a fonte prioritária:
-  - é do próprio GDF (Secretaria de Cultura), que orienta produtores a
-    cadastrarem a programação lá;
-  - roda sobre Mapas Culturais, software livre com API pública documentada;
-  - traz georreferenciamento, que é justamente o que falta no Finde;
-  - risco jurídico zero: dado público, uso previsto.
-
-A API do Mapas Culturais expõe /api/<entidade>/find/ com @select, @files e
-filtros por campo. O formato de resposta varia um pouco entre versões da
-plataforma, então o parser aqui é defensivo: campo que não vier é ignorado, e
-evento sem data é descartado em vez de receber data inventada.
-
-ANTES DE CONFIAR NESTA FONTE, MEÇA:
-    python manage.py medir_mapa_nas_nuvens
-O comando diz quantos eventos futuros existem, quais campos vêm preenchidos e
-qual a cobertura por região. Se o volume for baixo, a estratégia muda — não
-construa infraestrutura em cima de uma fonte que você não mediu.
-"""
 
 import logging
 from datetime import datetime

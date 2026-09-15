@@ -1,18 +1,4 @@
-{% load static %}/*
- * Service worker do Finde.
- *
- * Objetivo é modesto de propósito: deixar o app instalável (critério de
- * "installability" do Chrome/Android exige um service worker com fetch
- * handler) e não quebrar numa queda de conexão no meio da navegação — não
- * é um app offline-first. A agenda de eventos muda o tempo todo, então
- * páginas de navegação sempre tentam a rede primeiro; só caem para o cache
- * (ou para /offline/) quando a rede falha de verdade.
- *
- * VERSAO precisa mudar a cada alteração deste arquivo para os caches
- * antigos serem descartados no "activate". Os arquivos estáticos em si já
- * têm hash no nome em produção (WhiteNoise), então não precisam de
- * versionamento manual — só o "app shell" listado abaixo.
- */
+{% load static %}
 const VERSAO = "finde-v1";
 const CACHE_ESTATICO = `${VERSAO}-estatico`;
 const CACHE_RUNTIME = `${VERSAO}-runtime`;

@@ -13,20 +13,6 @@ from .base import EventoImportado, garantir_aware
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# IMPORTADOR LEGADO — EM DESLIGAMENTO
-#
-# Este é o único conector que raspa uma página com navegador. Ele continua aqui
-# por uma razão só: desligar antes de as fontes novas terem volume deixaria o
-# catálogo vazio, e catálogo vazio mata o produto mais rápido do que qualquer
-# risco jurídico.
-#
-# Vem desligado por padrão (SYMPLA_SCRAPING_ATIVO=False). Para remover de vez,
-# siga o roteiro do README, seção "Desligamento do Selenium".
-#
-# PRAZO DE REMOÇÃO: assim que o Mapa nas Nuvens + parceiros + produtores
-# sustentarem o catálogo. Compare com: manage.py comparar_catalogo
-# ---------------------------------------------------------------------------
 
 URL_LISTAGEM = "https://www.sympla.com.br/eventos/brasilia-df"
 PAUSA_LISTAGEM = 3

@@ -1,15 +1,3 @@
-"""Sympla pela API oficial, com token cedido pelo produtor.
-
-A API pública da Sympla devolve APENAS os eventos do dono do token — ela não
-tem busca por cidade. Isso descarta a Sympla como fonte de agregação, mas abre
-uma porta melhor: o produtor que já usa Sympla conecta a conta e os eventos
-dele passam a aparecer no Finde sozinhos, para sempre, sem digitar nada.
-
-Vira argumento de aquisição em vez de risco jurídico.
-
-Endpoint: GET https://api.sympla.com.br/public/v1.5.1/events
-Autenticação: cabeçalho s_token.
-"""
 
 import logging
 from datetime import datetime

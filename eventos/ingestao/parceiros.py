@@ -1,19 +1,3 @@
-"""Conector de parceiros: espaços culturais que autorizaram a leitura.
-
-Diferença essencial para o scraper que este projeto tinha: aqui existe uma
-lista curta, conhecida e acordada, o acesso é por `requests` simples (sem
-navegador), o robots.txt é respeitado e a página do evento leva crédito e link
-de volta para o parceiro. Em troca da autorização, o parceiro ganha tráfego.
-
-Cada parceiro declara como publica a agenda:
-  tipo="ics"     -> feed iCalendar (Google Agenda público, por exemplo)
-  tipo="jsonld"  -> página de agenda com schema.org/Event
-  tipo="pagina"  -> uma página por evento; `links` traz a listagem a percorrer
-
-A lista abaixo vem com os espaços mais prováveis do DF já mapeados, mas TODAS
-as URLs estão como None de propósito: preencher sem falar com o parceiro é
-voltar a raspar. Preencha `feed` conforme cada acordo for fechado.
-"""
 
 import logging
 import re
