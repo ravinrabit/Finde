@@ -13,11 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = False
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,10.0.2.2",
-    cast=Csv(),
-)
+ALLOWED_HOSTS = [
+    "finde-t4tj.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    "10.0.2.2",
+]
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 SITE_NOME = config("SITE_NOME", default="Finde")
