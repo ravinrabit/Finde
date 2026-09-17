@@ -1,0 +1,38 @@
+{% extends "eventos/base.html" %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>{% block painel_titulo %}Administração{% endblock %}</h1>
+        <p class="pagina-apoio">{% block painel_apoio %}{% endblock %}</p>
+    </div>
+
+    <div class="painel-layout">
+        <nav class="painel-nav" aria-label="Navegação administrativa">
+            <a href="{% url 'painel_admin' %}" {% block nav_painel_dashboard %}{% endblock %}>
+                {% icone "quadro" 16 %} Visão geral
+            </a>
+            <a href="{% url 'painel_moderacao' %}" {% block nav_painel_moderacao %}{% endblock %}>
+                {% icone "confirmado" 16 %} Moderação
+            </a>
+            <a href="{% url 'painel_produtores' %}" {% block nav_painel_produtores %}{% endblock %}>
+                {% icone "pessoas" 16 %} Produtores
+            </a>
+            <a href="{% url 'painel_locais' %}" {% block nav_painel_locais %}{% endblock %}>
+                {% icone "pino" 16 %} Locais
+            </a>
+            <a href="{% url 'painel_destaques' %}" {% block nav_painel_destaques %}{% endblock %}>
+                {% icone "estrela" 16 %} Destaques
+            </a>
+            <hr>
+            <a href="{% url 'admin:index' %}">
+                {% icone "ferramenta" 16 %} Admin completo
+            </a>
+        </nav>
+
+        <div class="painel-corpo">
+            {% block painel_conteudo %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

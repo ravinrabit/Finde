@@ -1,0 +1,46 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Sobre — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}A Finde reúne a agenda cultural de Brasília e do Distrito Federal em um só lugar.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Sobre a {{ SITE_NOME }}</h1>
+    </div>
+
+    <div class="prosa">
+        <p>
+            A programação de Brasília é boa e é espalhada. O show está no Mané Garrincha, o choro na Asa Sul,
+            a feira no Parque da Cidade, a exposição no Conjunto Nacional e o festival em Taguatinga.
+            Cada um em um site, cada um em um perfil diferente.
+        </p>
+        <p>
+            A {{ SITE_NOME }} existe para juntar isso: uma agenda única do Distrito Federal, organizada por
+            data, região e categoria, com {{ total_eventos }} evento{{ total_eventos|pluralize }} publicado{{ total_eventos|pluralize }} no momento.
+        </p>
+
+        <h2>Como a agenda é montada</h2>
+        <p>
+            Parte dos eventos é publicada diretamente por organizadores que criam conta aqui. Outra parte vem
+            de importação de plataformas públicas de venda de ingressos. Todo evento passa por revisão antes
+            de aparecer no site.
+        </p>
+
+        <h2>Para organizadores</h2>
+        <p>
+            Publicar é gratuito. Crie uma conta, preencha os dados do evento e ele entra na fila de revisão.
+            Depois de publicado, seu evento aparece na busca, nas listagens por região e por categoria, e
+            ganha uma página própria preparada para os buscadores.
+        </p>
+
+        <h2>Onde atendemos</h2>
+        <p>
+            Plano Piloto, Asa Sul, Asa Norte, Lago Sul, Lago Norte, Sudoeste, Noroeste, Cruzeiro, Águas Claras,
+            Taguatinga, Ceilândia, Guará, Samambaia, Vicente Pires, Sobradinho, Planaltina, Gama, Santa Maria,
+            Recanto das Emas, Riacho Fundo, Núcleo Bandeirante, Park Way, Jardim Botânico, São Sebastião,
+            Paranoá, Brazlândia e o entorno do DF.
+        </p>
+    </div>
+</div>
+{% endblock %}

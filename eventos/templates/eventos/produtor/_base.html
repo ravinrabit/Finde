@@ -1,0 +1,26 @@
+{% extends "eventos/base.html" %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="painel-layout">
+        <nav class="painel-nav" aria-label="Navegação do produtor">
+            <a href="{% url 'meus_eventos' %}" {% block nav_produtor_eventos %}{% endblock %}>
+                {% icone "calendario" 16 %} Meus eventos
+            </a>
+            <a href="{% url 'criar_evento' %}" {% block nav_produtor_criar %}{% endblock %}>
+                {% icone "ingresso" 16 %} Publicar evento
+            </a>
+            <a href="{% url 'meus_ingressos' %}" {% block nav_produtor_ingressos %}{% endblock %}>
+                {% icone "confirmado" 16 %} Meus ingressos
+            </a>
+            <a href="{% url 'perfil_produtor' %}" {% block nav_produtor_perfil %}{% endblock %}>
+                {% icone "pessoas" 16 %} Perfil de produtor
+            </a>
+        </nav>
+
+        <div class="painel-corpo">
+            {% block produtor_conteudo %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

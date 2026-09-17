@@ -1,0 +1,62 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Política de reembolso — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Como funcionam cancelamento e reembolso de ingressos na Finde.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Política de reembolso</h1>
+        <p class="prosa-data">Atualizado em {{ atualizado_em }}</p>
+    </div>
+
+    <div class="prosa">
+        <h2>1. A {{ SITE_NOME }} não cobra nem recebe pagamento</h2>
+        <p>
+            Hoje a {{ SITE_NOME }} não processa pagamentos. Reservar um ingresso pela plataforma é
+            gratuito e serve para controlar presença ou fila — não existe cobrança para reembolsar.
+            Você pode cancelar uma reserva feita na {{ SITE_NOME }} a qualquer momento antes do evento,
+            sem custo, na página <a href="{% url 'meus_ingressos' %}">Meus ingressos</a>.
+        </p>
+
+        <h2>2. Eventos com venda de ingresso pago</h2>
+        <p>
+            Quando um evento vende ingresso pago, essa venda acontece na plataforma do organizador ou
+            parceiro (por exemplo, Sympla) — o pagamento nunca passa pela {{ SITE_NOME }}. Nesses casos:
+        </p>
+        <ul class="lista-marcada">
+            <li>O contrato de compra é entre você e quem vendeu o ingresso, não com a {{ SITE_NOME }}.</li>
+            <li>O reembolso segue a política de reembolso e os prazos daquela plataforma.</li>
+            <li>
+                O Código de Defesa do Consumidor garante 7 dias corridos de arrependimento para compras
+                feitas fora de loja física, contados da compra, com devolução integral do valor pago —
+                esse direito é exercido junto a quem vendeu o ingresso.
+            </li>
+        </ul>
+        <p>
+            Se tiver dificuldade para conseguir um reembolso ao qual você tem direito, escreva pela
+            <a href="{% url 'contato' %}">página de contato</a>: não processamos o estorno, mas podemos
+            remover o evento ou o organizador do site em caso de problema recorrente.
+        </p>
+
+        <h2>3. Evento cancelado, adiado ou alterado</h2>
+        <p>
+            Cancelamento, mudança de data, horário ou local é decisão e responsabilidade do organizador,
+            inclusive o reembolso quando aplicável. A {{ SITE_NOME }} atualiza a página do evento assim
+            que temos essa informação, mas não é parte da relação de compra.
+        </p>
+
+        <h2>4. Se isso mudar</h2>
+        <p>
+            Caso a {{ SITE_NOME }} passe a processar pagamentos diretamente no futuro, esta página será
+            reescrita com prazo, forma e condições de reembolso próprios, antes desse recurso entrar no ar.
+        </p>
+
+        <h2>5. Dúvidas</h2>
+        <p>
+            Fale com a gente em <a href="mailto:{{ email_contato }}">{{ email_contato }}</a> ou pela
+            <a href="{% url 'contato' %}">página de contato</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

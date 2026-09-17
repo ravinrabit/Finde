@@ -1,0 +1,18 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Recuperar senha — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Vamos recuperar seu acesso{% endblock %}
+{% block arte_texto %}Enviamos um link seguro para o e-mail cadastrado na sua conta.{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Recuperar senha</h1>
+    <p class="conta-apoio">Informe seu e-mail e enviaremos um link para criar uma nova senha.</p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "eventos/partials/campo.html" with campo=form.email %}
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Enviar link de redefinição</button>
+    </form>
+
+    <p class="conta-rodape">Lembrou a senha? <a href="{% url 'login' %}">Voltar para o login</a></p>
+{% endblock %}

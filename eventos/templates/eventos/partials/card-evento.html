@@ -1,0 +1,46 @@
+<article class="card-evento">
+    <div class="card-capa">
+        {% if evento.imagem_exibicao %}
+            {% capa evento "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px" %}
+        {% else %}
+            <div class="card-capa-vazia">{% icone_categoria evento.categoria 40 %}</div>
+        {% endif %}
+
+        <div class="card-selos">
+            {% if evento.acontecendo_agora %}
+                <span class="selo selo-agora">Acontecendo agora</span>
+            {% elif evento.e_hoje %}
+                <span class="selo selo-hoje">Hoje</span>
+            {% endif %}
+            {% if evento.gratuito %}<span class="selo selo-gratis">Gratuito</span>{% endif %}
+            {% if evento.esgotado %}<span class="selo selo-esgotado">Esgotado</span>{% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+            <button type="button" class="card-favoritar"
+                    data-favoritar="{% url 'alternar_favorito' evento.slug %}"
+                    aria-pressed="{% if evento.pk in favoritos_do_usuario %}true{% else %}false{% endif %}"
+                    aria-label="{% if evento.pk in favoritos_do_usuario %}Remover dos favoritos{% else %}Salvar nos favoritos{% endif %}">
+                {% icone "coracao" 18 %}
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="card-corpo">
+        <p class="card-quando">{{ evento|quando }}</p>
+        <h3 class="card-titulo"><a class="card-alvo" href="{{ evento.get_absolute_url }}">{{ evento.nome }}</a></h3>
+        <p class="card-local">
+            {% icone "pino" 15 %}
+            <span>{{ evento.local }}{% if evento.regiao %} · {{ evento.get_regiao_display }}{% endif %}</span>
+        </p>
+        {% if evento.distancia is not None %}
+            <p class="card-distancia">{% icone "pino" 13 %} a {{ evento.distancia|distancia }} de você</p>
+        {% endif %}
+        <div class="card-rodape">
+            <span class="card-preco {% if evento.gratuito %}card-preco-gratis{% endif %}">
+                {% if evento.gratuito %}Gratuito{% elif evento.preco %}{{ evento.preco|reais }}{% else %}A definir{% endif %}
+            </span>
+            {% if evento.categoria %}<span class="card-categoria">{{ evento.get_categoria_display }}</span>{% endif %}
+        </div>
+    </div>
+</article>

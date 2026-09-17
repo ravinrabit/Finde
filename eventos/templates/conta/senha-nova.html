@@ -1,0 +1,25 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Nova senha — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Escolha uma nova senha{% endblock %}
+
+{% block formulario %}
+    {% if validlink %}
+        <h1 class="conta-titulo">Nova senha</h1>
+        <p class="conta-apoio">Use pelo menos 8 caracteres, com letras e números.</p>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% include "eventos/partials/campo.html" with campo=form.new_password1 %}
+            {% include "eventos/partials/campo.html" with campo=form.new_password2 %}
+            <button type="submit" class="btn btn-primario btn-g btn-cheio">Salvar nova senha</button>
+        </form>
+    {% else %}
+        <h1 class="conta-titulo">Link expirado</h1>
+        <p class="conta-apoio">
+            Este link de redefinição já foi usado ou perdeu a validade.
+            Peça um novo para continuar.
+        </p>
+        <a class="btn btn-primario btn-g btn-cheio" href="{% url 'password_reset' %}">Pedir novo link</a>
+    {% endif %}
+{% endblock %}

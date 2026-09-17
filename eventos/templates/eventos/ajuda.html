@@ -1,0 +1,154 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Ajuda — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Dúvidas sobre reservas, ingressos e publicação de eventos na Finde.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <h1>Central de ajuda</h1>
+        <p class="pagina-apoio">As dúvidas mais comuns de quem usa a {{ SITE_NOME }} para descobrir ou publicar eventos.</p>
+    </div>
+
+    <section class="secao">
+        <h2 class="secao-titulo">Ingressos e reservas</h2>
+        <div class="perguntas">
+            <details class="pergunta">
+                <summary>Como reservo um ingresso?</summary>
+                <div class="pergunta-corpo">
+                    Abra a página do evento, escolha entre inteira e meia-entrada e confirme a quantidade.
+                    A reserva aparece na hora em <a href="{% url 'meus_ingressos' %}">Meus ingressos</a>, com um código
+                    para apresentar na entrada.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Consigo cancelar uma reserva?</summary>
+                <div class="pergunta-corpo">
+                    Sim, a qualquer momento antes do início do evento. Em Meus ingressos, use o botão
+                    "Cancelar ingresso" no próprio bilhete. Depois que o evento começa o cancelamento é bloqueado.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Alguns eventos levam para outro site. Por quê?</summary>
+                <div class="pergunta-corpo">
+                    Quando o organizador vende os ingressos em outra plataforma, a {{ SITE_NOME }} mostra o evento e
+                    encaminha você para o canal oficial de venda. Nesses casos a reserva não acontece aqui.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>O que significa "valor a definir"?</summary>
+                <div class="pergunta-corpo">
+                    O organizador ainda não informou o preço. Você pode reservar e o valor é confirmado antes de
+                    qualquer cobrança.
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2 class="secao-titulo">Para organizadores</h2>
+        <div class="perguntas">
+            <details class="pergunta">
+                <summary>Como publico um evento?</summary>
+                <div class="pergunta-corpo">
+                    Crie uma conta e use <a href="{% url 'criar_evento' %}">Publicar evento</a>. Preencha nome, data,
+                    local, categoria e preço. O evento entra como "aguardando aprovação" e vai ao ar depois da revisão.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Quanto tempo leva a aprovação?</summary>
+                <div class="pergunta-corpo">
+                    A revisão é manual e serve para checar se as informações estão completas e se o evento acontece
+                    no DF ou no entorno. Você acompanha o status em Meus eventos.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Meu evento foi rejeitado. E agora?</summary>
+                <div class="pergunta-corpo">
+                    Edite as informações em Meus eventos e salve. O evento volta automaticamente para a fila de
+                    revisão. Os motivos mais comuns são data no passado, local incompleto ou descrição vazia.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Posso editar um evento já publicado?</summary>
+                <div class="pergunta-corpo">
+                    Pode. As alterações valem imediatamente e a página pública é atualizada.
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2 class="secao-titulo">Seus dados e privacidade</h2>
+        <div class="faq">
+            <details class="faq-item">
+                <summary>Como baixo tudo o que vocês guardam sobre mim?</summary>
+                <div class="faq-corpo">
+                    <p>
+                        Em <a href="{% url 'minha_privacidade' %}">Meus dados</a> há um botão que gera
+                        um arquivo JSON com sua conta, ingressos, favoritos, eventos publicados e o
+                        registro de quando você aceitou os termos. É imediato, não precisa pedir.
+                    </p>
+                </div>
+            </details>
+            <details class="faq-item">
+                <summary>Como excluo minha conta?</summary>
+                <div class="faq-corpo">
+                    <p>
+                        Em <a href="{% url 'excluir_minha_conta' %}">Excluir conta</a>. Pedimos sua senha
+                        e uma confirmação escrita, porque não tem volta. Conta, ingressos e favoritos
+                        são apagados de verdade do banco de dados.
+                    </p>
+                    <p>
+                        Eventos que você publicou continuam no ar, sem seu nome: apagá-los tiraria da
+                        agenda um compromisso público que outras pessoas já usaram para se planejar.
+                        Se precisar remover algum, cancele antes em
+                        <a href="{% url 'meus_eventos' %}">Meus eventos</a>.
+                    </p>
+                </div>
+            </details>
+            <details class="faq-item">
+                <summary>Com quem vocês compartilham meus dados?</summary>
+                <div class="faq-corpo">
+                    <p>
+                        Quando você reserva ingresso, o organizador daquele evento recebe seu nome e
+                        e-mail — ele precisa disso para fazer a portaria funcionar. Fora isso, não
+                        vendemos nem cedemos dados. Os detalhes estão na
+                        <a href="{% url 'privacidade' %}">Política de Privacidade</a>.
+                    </p>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2 class="secao-titulo">Conta</h2>
+        <div class="perguntas">
+            <details class="pergunta">
+                <summary>Esqueci minha senha</summary>
+                <div class="pergunta-corpo">
+                    Use <a href="{% url 'password_reset' %}">recuperar senha</a>. Enviamos um link de redefinição
+                    para o e-mail cadastrado.
+                </div>
+            </details>
+            <details class="pergunta">
+                <summary>Como funcionam os favoritos?</summary>
+                <div class="pergunta-corpo">
+                    O coração nos cards salva o evento na sua lista de <a href="{% url 'meus_favoritos' %}">favoritos</a>.
+                    Serve para separar o que te interessou sem precisar reservar na hora.
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <section class="secao">
+        <h2 class="secao-titulo">Não achou a resposta?</h2>
+        <p class="pagina-apoio">
+            Escreva para <a href="mailto:{{ email_contato }}">{{ email_contato }}</a> ou use a
+            <a href="{% url 'contato' %}">página de contato</a>. Respondemos em até dois dias úteis.
+        </p>
+    </section>
+
+</div>
+{% endblock %}

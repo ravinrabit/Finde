@@ -1,0 +1,59 @@
+{% extends "eventos/produtor/_base.html" %}
+
+{% block titulo %}Destacar {{ evento.nome }} — {{ SITE_NOME }}{% endblock %}
+{% block nav_meus_eventos %}aria-current="page"{% endblock %}
+{% block nav_produtor_eventos %}aria-current="page"{% endblock %}
+
+{% block produtor_conteudo %}
+    <a class="conta-voltar" href="{% url 'meus_eventos' %}">
+        {% icone "seta-esquerda" 16 %} Voltar para meus eventos
+    </a>
+
+    <div class="pagina-topo">
+        <h1>Destacar "{{ evento.nome }}"</h1>
+        <p class="pagina-apoio">
+            {% if evento.destaque_ativo %}
+                Este evento já está no plano <strong>{{ evento.get_plano_destaque_display }}</strong>
+                até {{ evento.destaque_pago_ate|date:"d/m/Y" }}.
+            {% else %}
+                Escolha um plano para aparecer em posição privilegiada na agenda.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="lista-gerencia">
+        {% for plano in planos %}
+            <article class="linha-gerencia">
+                <div class="linha-gerencia-info">
+                    <h2 class="linha-gerencia-titulo">{{ plano.nome }} — R$ {{ plano.preco }}</h2>
+                    <p class="linha-gerencia-meta">{{ plano.beneficio }}</p>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if ja_tem_pedido %}
+        <div class="aviso aviso-info" role="status">
+            {% icone "confirmado" 18 %}
+            <span>Já existe um pedido em análise para este evento. A equipe avisa quando ativar.</span>
+        </div>
+    {% else %}
+        <form method="post" class="formulario" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="aviso aviso-erro" role="alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% for campo in form %}
+                {% include "eventos/partials/campo.html" %}
+            {% endfor %}
+            <p class="campo-ajuda">
+                O pagamento é combinado por fora (Pix, por exemplo). A equipe confirma e ativa o
+                plano assim que receber.
+            </p>
+            <div class="formulario-acoes">
+                <button type="submit" class="btn btn-primario btn-g">Enviar pedido</button>
+                <a class="btn btn-texto" href="{% url 'meus_eventos' %}">Cancelar</a>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

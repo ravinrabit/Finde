@@ -1,0 +1,83 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}{{ titulo }} — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}{{ titulo }}{% endblock %}
+{% block painel_apoio %}{% if local %}Editando local cadastrado{% else %}Cadastro de local{% endif %}{% endblock %}
+{% block nav_painel_locais %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+{% if form.non_field_errors %}
+    <div class="form-aviso" role="alert">
+        {% icone "alerta" 20 %}
+        <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+    </div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Identificação</h2>
+        {% include "eventos/partials/campo.html" with campo=form.nome %}
+        {% include "eventos/partials/campo.html" with campo=form.descricao %}
+        {% include "eventos/partials/campo.html" with campo=form.site %}
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Endereço</h2>
+        {% include "eventos/partials/campo.html" with campo=form.endereco %}
+        {% include "eventos/partials/campo.html" with campo=form.referencia %}
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.regiao %}
+            {% include "eventos/partials/campo.html" with campo=form.cidade %}
+            {% include "eventos/partials/campo.html" with campo=form.cep %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Coordenadas</h2>
+        <p class="form-secao-apoio">
+            Deixe em branco para geocodificar automaticamente pelo endereço assim que salvar.
+        </p>
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.latitude %}
+            {% include "eventos/partials/campo.html" with campo=form.longitude %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Acessibilidade e transporte</h2>
+        {% include "eventos/partials/campo.html" with campo=form.acessivel_cadeirante %}
+        {% include "eventos/partials/campo.html" with campo=form.estacionamento %}
+    </section>
+
+    <div class="form-acoes">
+        <a class="btn btn-fantasma" href="{% url 'painel_locais' %}">Cancelar</a>
+        <button type="submit" class="btn btn-primario btn-g">{% if local %}Salvar alterações{% else %}Criar local{% endif %}</button>
+    </div>
+</form>
+
+{% if local %}
+    <section class="cartao cartao-perigo">
+        <h2>Apagar definitivamente</h2>
+        <p>
+            {% if local.eventos.exists %}
+                Este local tem eventos vinculados e não pode ser apagado. Remova ou reatribua os
+                eventos antes.
+            {% else %}
+                Isso remove o local, sem volta.
+            {% endif %}
+        </p>
+        {% if not local.eventos.exists %}
+            <form method="post" action="{% url 'painel_local_remover' local.slug %}" class="form-confirmacao">
+                {% csrf_token %}
+                <label class="so-leitor" for="confirmacao-local">Digite o nome do local para confirmar</label>
+                <input type="text" id="confirmacao-local" name="confirmacao" placeholder="Digite “{{ local.nome }}” para confirmar">
+                <button type="submit" class="btn btn-perigo">Apagar local</button>
+            </form>
+        {% endif %}
+    </section>
+{% endif %}
+
+{% endblock %}

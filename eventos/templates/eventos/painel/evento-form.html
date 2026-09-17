@@ -1,0 +1,114 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}{{ titulo }} — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}{{ titulo }}{% endblock %}
+{% block painel_apoio %}{% if evento %}Editando evento cadastrado{% else %}Cadastro direto pela equipe{% endif %}{% endblock %}
+{% block nav_painel_moderacao %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+{% if form.non_field_errors %}
+    <div class="form-aviso" role="alert">
+        {% icone "alerta" 20 %}
+        <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+    </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Identidade do evento</h2>
+        {% include "eventos/partials/campo.html" with campo=form.nome %}
+
+        <div class="campo-grupo {% if form.imagem.errors %}campo-invalido{% endif %}">
+            <span class="campo-rotulo">{{ form.imagem.label }}</span>
+            <label class="upload" for="{{ form.imagem.id_for_label }}" data-upload>
+                <div class="upload-texto" data-upload-texto>
+                    {% icone "quadro" 32 %}
+                    <strong>Clique ou arraste a imagem</strong>
+                    <span class="upload-dica">Formato paisagem · JPG, PNG, WEBP ou GIF · até 5 MB</span>
+                </div>
+                <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da capa">
+                {{ form.imagem }}
+            </label>
+            {% for erro in form.imagem.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+        </div>
+
+        {% include "eventos/partials/campo.html" with campo=form.resumo %}
+        {% include "eventos/partials/campo.html" with campo=form.descricao %}
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Data e horário</h2>
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.data %}
+            {% include "eventos/partials/campo.html" with campo=form.data_fim %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Local</h2>
+        {% include "eventos/partials/campo.html" with campo=form.modalidade %}
+        {% include "eventos/partials/campo.html" with campo=form.local %}
+        <datalist id="locais-conhecidos">
+            {% for nome in locais_conhecidos %}<option value="{{ nome }}">{% endfor %}
+        </datalist>
+        {% include "eventos/partials/campo.html" with campo=form.endereco %}
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.regiao %}
+            {% include "eventos/partials/campo.html" with campo=form.cidade %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Categoria e ingressos</h2>
+        {% include "eventos/partials/campo.html" with campo=form.categoria %}
+        {% include "eventos/partials/campo.html" with campo=form.gratuito %}
+        {% include "eventos/partials/campo.html" with campo=form.preco %}
+        {% include "eventos/partials/campo.html" with campo=form.organizador %}
+        {% include "eventos/partials/campo.html" with campo=form.link_ingressos %}
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Capacidade</h2>
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.capacidade %}
+            {% include "eventos/partials/campo.html" with campo=form.limite_por_usuario %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Moderação</h2>
+        <p class="form-secao-apoio">
+            Só a equipe vê estes campos. Mudar o status aqui publica ou rejeita o evento na hora
+            e avisa o produtor por e-mail.
+        </p>
+        {% include "eventos/partials/campo.html" with campo=form.status %}
+        {% include "eventos/partials/campo.html" with campo=form.destaque %}
+        {% include "eventos/partials/campo.html" with campo=form.motivo_rejeicao %}
+    </section>
+
+    <div class="form-acoes">
+        <a class="btn btn-fantasma" href="{% url 'painel_moderacao' %}">Cancelar</a>
+        <button type="submit" class="btn btn-primario btn-g">{% if evento %}Salvar alterações{% else %}Criar evento{% endif %}</button>
+    </div>
+</form>
+
+{% if evento %}
+    <section class="cartao cartao-perigo">
+        <h2>Apagar definitivamente</h2>
+        <p>
+            Isso remove o evento e todos os ingressos ligados a ele, sem volta. Para arquivar sem
+            apagar, mude o status para "Arquivado" acima.
+        </p>
+        <form method="post" action="{% url 'painel_evento_remover' evento.slug %}" class="form-confirmacao">
+            {% csrf_token %}
+            <label class="so-leitor" for="confirmacao-evento">Digite o nome do evento para confirmar</label>
+            <input type="text" id="confirmacao-evento" name="confirmacao" placeholder="Digite “{{ evento.nome }}” para confirmar">
+            <button type="submit" class="btn btn-perigo">Apagar evento</button>
+        </form>
+    </section>
+{% endif %}
+
+{% endblock %}

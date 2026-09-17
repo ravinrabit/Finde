@@ -1,0 +1,56 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Locais de eventos em Brasília — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Teatros, casas de show, centros culturais e parques do DF com programação confirmada.{% endblock %}
+{% block nav_locais %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Onde acontece</h1>
+        <p class="pagina-apoio">
+            Os espaços do Distrito Federal com evento marcado. Cada local tem página própria,
+            com endereço, mapa e a programação completa.
+        </p>
+    </div>
+
+    <div class="fichas">
+        <a class="ficha {% if not regiao_ativa %}ficha-ativa{% endif %}" href="{% url 'lista_locais' %}">Todas as regiões</a>
+        {% for regiao in regioes %}
+            {% if regiao.total %}
+                <a class="ficha {% if regiao_ativa == regiao.valor %}ficha-ativa{% endif %}"
+                   href="{% url 'lista_locais' %}?regiao={{ regiao.valor }}">{{ regiao.nome }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <p class="resultados-total" role="status">
+        <strong>{{ total }}</strong> local{{ total|pluralize:"is" }} com programação
+    </p>
+
+    {% if pagina.object_list %}
+        <div class="grade-locais">
+            {% for local in pagina %}
+                <a class="card-local-item" href="{{ local.get_absolute_url }}">
+                    <h2>{{ local.nome }}</h2>
+                    {% if local.regiao %}<p class="card-local-regiao">{% icone "pino" 14 %} {{ local.get_regiao_display }}</p>{% endif %}
+                    {% if local.endereco %}<p class="card-local-endereco">{{ local.endereco }}</p>{% endif %}
+                    <p class="card-local-total">{{ local.total }} evento{{ local.total|pluralize }} em cartaz</p>
+                    <div class="card-local-selos">
+                        {% if local.metro_proximo %}<span class="selo selo-info">Metrô {{ local.metro_proximo }}</span>{% endif %}
+                        {% if local.acessivel_cadeirante %}<span class="selo selo-info">Acessível</span>{% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+        {% include "eventos/partials/paginacao.html" %}
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "pino" 44 %}
+            <h2>Nenhum local com evento agora</h2>
+            <p>Assim que houver programação confirmada, os espaços aparecem aqui.</p>
+            <a class="btn btn-primario" href="{% url 'lista_eventos' %}">Ver a agenda</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

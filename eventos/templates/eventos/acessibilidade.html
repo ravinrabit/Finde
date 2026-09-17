@@ -1,0 +1,70 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Acessibilidade — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Como a Finde funciona com teclado, leitor de tela e preferências de exibição.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Acessibilidade</h1>
+        <p class="prosa-data">Atualizado em {{ atualizado_em }}</p>
+    </div>
+
+    <div class="prosa">
+        <p>
+            A {{ SITE_NOME }} é feita para funcionar bem com teclado, leitor de tela e diferentes
+            preferências de exibição. Esta página resume o que já existe e como acionar.
+        </p>
+
+        <h2>Preferências de exibição</h2>
+        <p>
+            No botão de preferências, no topo de qualquer página, você encontra:
+        </p>
+        <ul class="lista-marcada">
+            <li><strong>Tema:</strong> claro, escuro ou "sistema" (segue a preferência do seu aparelho).</li>
+            <li><strong>Tamanho da fonte:</strong> menor, padrão ou maior.</li>
+            <li><strong>Alto contraste:</strong> aumenta o contraste do texto secundário e das bordas.</li>
+        </ul>
+        <p>A escolha fica salva no seu navegador e vale para as próximas visitas.</p>
+
+        <h2>Navegação por teclado</h2>
+        <ul class="lista-marcada">
+            <li>Todo o site é navegável só com Tab, Shift+Tab e Enter.</li>
+            <li>
+                A primeira tecla Tab em qualquer página revela o atalho "Pular para o conteúdo", que
+                pula a navegação e vai direto para o conteúdo principal.
+            </li>
+            <li>Elementos em foco recebem um contorno visível — nenhum estilo de foco é removido.</li>
+            <li>O menu do celular e os painéis de preferências fecham com a tecla Esc.</li>
+        </ul>
+
+        <h2>Leitor de tela</h2>
+        <ul class="lista-marcada">
+            <li>Campos de formulário têm rótulo associado, mesmo quando visualmente ocultos.</li>
+            <li>Erros de formulário são anunciados e ligados ao campo por <code>aria-describedby</code>.</li>
+            <li>Avisos do site (sucesso, erro) usam <code>role="status"</code> e são lidos automaticamente.</li>
+            <li>Ícones decorativos são ocultados de leitores de tela; ícones com significado têm texto alternativo.</li>
+        </ul>
+
+        <h2>Movimento e mapa</h2>
+        <p>
+            O site respeita a preferência do sistema por "reduzir movimento": quem ativa essa opção no
+            aparelho não vê animações nem transições. O mapa de eventos é progressivo — sem JavaScript,
+            a agenda continua disponível em formato de lista, com os mesmos filtros.
+        </p>
+
+        <h2>Contraste de cor</h2>
+        <p>
+            Os textos do site seguem o mínimo de contraste AA do WCAG (4,5:1 para texto normal), nos
+            temas claro e escuro.
+        </p>
+
+        <h2>Encontrou uma barreira?</h2>
+        <p>
+            Se algo no site não funcionar bem com o seu leitor de tela, teclado ou outra tecnologia
+            assistiva, conte pra gente pela <a href="{% url 'contato' %}">página de contato</a> ou por
+            <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a>. Queremos corrigir.
+        </p>
+    </div>
+</div>
+{% endblock %}

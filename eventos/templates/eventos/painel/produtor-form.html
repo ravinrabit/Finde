@@ -1,0 +1,71 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}{{ titulo }} — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}{{ titulo }}{% endblock %}
+{% block painel_apoio %}{% if produtor %}Editando produtor cadastrado{% else %}Cadastro de produtor{% endif %}{% endblock %}
+{% block nav_painel_produtores %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+{% if form.non_field_errors %}
+    <div class="form-aviso" role="alert">
+        {% icone "alerta" 20 %}
+        <span>{% for erro in form.non_field_errors %}{{ erro }} {% endfor %}</span>
+    </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Identidade</h2>
+        {% include "eventos/partials/campo.html" with campo=form.nome %}
+        {% include "eventos/partials/campo.html" with campo=form.bio %}
+        {% include "eventos/partials/campo.html" with campo=form.logo %}
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Contato</h2>
+        {% include "eventos/partials/campo.html" with campo=form.email %}
+        {% include "eventos/partials/campo.html" with campo=form.site %}
+        <div class="campo-linha">
+            {% include "eventos/partials/campo.html" with campo=form.instagram %}
+            {% include "eventos/partials/campo.html" with campo=form.whatsapp %}
+        </div>
+    </section>
+
+    <section class="form-secao">
+        <h2 class="form-secao-titulo">Administração</h2>
+        <p class="form-secao-apoio">Só a equipe vê estes campos.</p>
+        {% include "eventos/partials/campo.html" with campo=form.verificado %}
+        {% include "eventos/partials/campo.html" with campo=form.email_do_dono %}
+    </section>
+
+    <div class="form-acoes">
+        <a class="btn btn-fantasma" href="{% url 'painel_produtores' %}">Cancelar</a>
+        <button type="submit" class="btn btn-primario btn-g">{% if produtor %}Salvar alterações{% else %}Criar produtor{% endif %}</button>
+    </div>
+</form>
+
+{% if produtor %}
+    <section class="cartao cartao-perigo">
+        <h2>Apagar definitivamente</h2>
+        <p>
+            {% if produtor.eventos.exists %}
+                Este produtor tem eventos vinculados e não pode ser apagado.
+            {% else %}
+                Isso remove o produtor, sem volta.
+            {% endif %}
+        </p>
+        {% if not produtor.eventos.exists %}
+            <form method="post" action="{% url 'painel_produtor_remover' produtor.slug %}" class="form-confirmacao">
+                {% csrf_token %}
+                <label class="so-leitor" for="confirmacao-produtor">Digite o nome do produtor para confirmar</label>
+                <input type="text" id="confirmacao-produtor" name="confirmacao" placeholder="Digite “{{ produtor.nome }}” para confirmar">
+                <button type="submit" class="btn btn-perigo">Apagar produtor</button>
+            </form>
+        {% endif %}
+    </section>
+{% endif %}
+
+{% endblock %}

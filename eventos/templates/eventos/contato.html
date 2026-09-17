@@ -1,0 +1,51 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Contato — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Canais de contato do {{ SITE_NOME }}: dúvidas, correção de eventos, imprensa, parcerias e privacidade.{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Fale com a gente</h1>
+        <p class="pagina-apoio">
+            Somos um projeto pequeno, feito em Brasília. Respondemos todas as mensagens,
+            normalmente em até dois dias úteis.
+        </p>
+    </div>
+
+    <section class="cartao">
+        <h2>Dúvidas e problemas</h2>
+        <p>Algo não funcionou, ou você não achou o que procurava?</p>
+        <p><a class="link-destaque" href="mailto:{{ email_contato }}">{{ email_contato }}</a></p>
+    </section>
+
+    <section class="cartao">
+        <h2>Corrigir ou remover um evento</h2>
+        <p>
+            Se um evento seu apareceu aqui com informação errada, ou você quer que ele saia
+            do site, escreva com o link da página. Corrigimos ou removemos.
+        </p>
+        <p><a class="link-destaque" href="mailto:{{ email_contato }}">{{ email_contato }}</a></p>
+    </section>
+
+    <section class="cartao">
+        <h2>Privacidade e dados pessoais</h2>
+        <p>
+            Para exercer seus direitos da LGPD, o caminho mais rápido é a página
+            <a href="{% url 'minha_privacidade' %}">Meus dados</a>, que faz exportação e exclusão
+            na hora. Para o que não estiver lá, fale com o encarregado de dados:
+        </p>
+        <p><a class="link-destaque" href="mailto:{{ email_lgpd }}">{{ email_lgpd }}</a></p>
+    </section>
+
+    <section class="cartao">
+        <h2>Parcerias com espaços culturais</h2>
+        <p>
+            Se você administra um teatro, cinema, centro cultural ou casa de show no DF e quer
+            que sua agenda entre no {{ SITE_NOME }} automaticamente, conte qual formato você já
+            publica (feed .ics, JSON-LD no site, API). Fazemos a integração e o link volta para você.
+        </p>
+        <p><a class="link-destaque" href="mailto:{{ email_contato }}">{{ email_contato }}</a></p>
+    </section>
+</div>
+{% endblock %}

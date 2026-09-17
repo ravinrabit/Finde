@@ -1,0 +1,47 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}Destaques — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}Pedidos de destaque{% endblock %}
+{% block painel_apoio %}Confirme o pagamento fora do site e aprove aqui para ativar o plano.{% endblock %}
+{% block nav_painel_destaques %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+{% if solicitacoes %}
+    <div class="lista-gerencia">
+        {% for solicitacao in solicitacoes %}
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-info">
+                <span class="selo selo-pendente">{{ solicitacao.get_plano_display }}</span>
+                <h2 class="linha-gerencia-titulo">{{ solicitacao.evento.nome }}</h2>
+                <p class="linha-gerencia-meta">
+                    Pedido em {{ solicitacao.criado_em|date:"d/m/Y H:i" }}
+                    {% if solicitacao.evento.produtor %} · {{ solicitacao.evento.produtor.nome }}{% endif %}
+                </p>
+                {% if solicitacao.mensagem %}
+                    <p class="campo-ajuda">"{{ solicitacao.mensagem }}"</p>
+                {% endif %}
+            </div>
+            <div class="linha-gerencia-acoes">
+                <a class="btn btn-p btn-fantasma" href="{{ solicitacao.evento.get_absolute_url }}" target="_blank" rel="noopener">Ver evento</a>
+                <form method="post" action="{% url 'painel_destaque_recusar' solicitacao.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-p btn-fantasma">Recusar</button>
+                </form>
+                <form method="post" action="{% url 'painel_destaque_aprovar' solicitacao.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-p btn-primario">Confirmar pagamento e ativar</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="estado-vazio">
+        {% icone "vazio" 44 %}
+        <h2>Nada por aqui</h2>
+        <p>Não há pedidos de destaque em aberto.</p>
+    </div>
+{% endif %}
+
+{% endblock %}

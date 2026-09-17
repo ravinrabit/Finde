@@ -1,0 +1,12 @@
+Sua reserva foi cancelada.
+
+  {{ evento.nome }}
+  {{ evento.data|date:"l, j \d\e F \d\e Y, H:i" }}
+  Código: {{ ingresso.codigo_curto }}
+
+A vaga voltou para o evento. Se foi engano, ainda dá para reservar de novo,
+enquanto houver lugar.
+{% if url %}
+{{ url }}
+{% endif %}
+— {{ SITE_NOME }}

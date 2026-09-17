@@ -1,0 +1,18 @@
+Sua conta no {{ SITE_NOME }} foi excluída.
+
+O que foi apagado:
+  - {{ resumo.ingressos_removidos }} ingresso(s)
+  - {{ resumo.favoritos_removidos }} favorito(s)
+  - seu nome, e-mail e senha
+{% if resumo.eventos_preservados %}
+O que continua no ar:
+  - {{ resumo.eventos_preservados }} evento(s) que você publicou, agora sem vínculo com
+    você. Eles seguem na agenda pública porque outras pessoas contam com essa
+    informação e algumas já reservaram lugar.
+{% endif %}
+Este é o último e-mail que você recebe de nós. Guardamos apenas o mínimo exigido
+por lei sobre registros de acesso.
+
+Se a exclusão não foi você quem pediu, escreva imediatamente para {{ EMAIL_CONTATO }}.
+
+— {{ SITE_NOME }}

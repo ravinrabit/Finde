@@ -1,0 +1,76 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}Produtores — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}Produtores{% endblock %}
+{% block painel_apoio %}Confirme a identidade de quem publica eventos no Finde.{% endblock %}
+{% block nav_painel_produtores %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+<div class="pagina-acoes">
+    <a class="btn btn-primario" href="{% url 'painel_produtor_criar' %}">Novo produtor</a>
+</div>
+
+<div class="painel-filtro-status">
+    <a class="selo selo-pendente" href="?filtro=nao-verificados" {% if apenas_nao_verificados %}aria-current="page"{% endif %}>Não verificados</a>
+    <a class="selo selo-neutro" href="?filtro=todos" {% if not apenas_nao_verificados %}aria-current="page"{% endif %}>Todos</a>
+</div>
+
+<form class="painel-busca" method="get" role="search">
+    <input type="hidden" name="filtro" value="{% if apenas_nao_verificados %}nao-verificados{% else %}todos{% endif %}">
+    <label class="so-leitor" for="painel-busca-produtor">Buscar produtor</label>
+    <input type="search" id="painel-busca-produtor" name="busca" value="{{ busca }}" placeholder="Nome do produtor">
+    <button type="submit" class="btn btn-p btn-contorno">Buscar</button>
+</form>
+
+{% if pagina.object_list %}
+    <div class="lista-gerencia">
+        {% for produtor in pagina %}
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-capa">
+                {% if produtor.logo_exibicao %}
+                    <img src="{{ produtor.logo_exibicao }}" alt="" loading="lazy" width="96" height="72">
+                {% endif %}
+            </div>
+            <div class="linha-gerencia-info">
+                {% if produtor.verificado %}
+                    <span class="selo selo-verificado">{% icone "confirmado" 13 %} Verificado</span>
+                {% else %}
+                    <span class="selo selo-pendente">Não verificado</span>
+                {% endif %}
+                <h2 class="linha-gerencia-titulo">{{ produtor.nome }}</h2>
+                <p class="linha-gerencia-meta">
+                    {{ produtor.email|default:"sem e-mail" }} · {{ produtor.total_eventos }} evento{{ produtor.total_eventos|pluralize }}
+                </p>
+            </div>
+            <div class="linha-gerencia-acoes">
+                <a class="btn btn-p btn-fantasma" href="{{ produtor.get_absolute_url }}" target="_blank" rel="noopener">Ver página</a>
+                <a class="btn btn-p btn-contorno" href="{% url 'painel_produtor_editar' produtor.slug %}">Editar</a>
+                {% if produtor.verificado %}
+                <form method="post" action="{% url 'painel_produtor_remover_verificacao' produtor.slug %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-p btn-fantasma">Remover verificação</button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'painel_produtor_verificar' produtor.slug %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-p btn-primario">Verificar</button>
+                </form>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% include "eventos/partials/paginacao.html" %}
+{% else %}
+    <div class="estado-vazio">
+        {% icone "vazio" 44 %}
+        <h2>Nada por aqui</h2>
+        <p>Não há produtores para este filtro.</p>
+    </div>
+{% endif %}
+
+{% endblock %}

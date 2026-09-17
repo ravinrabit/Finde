@@ -1,0 +1,55 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Produtores de eventos em Brasília — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Quem organiza a programação cultural do Distrito Federal: coletivos, casas e produtoras com eventos confirmados.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Quem organiza</h1>
+        <p class="pagina-apoio">
+            Produtoras, coletivos e casas que colocam Brasília para funcionar.
+            Siga a página de quem você gosta e acompanhe a agenda.
+        </p>
+    </div>
+
+    <p class="resultados-total" role="status">
+        <strong>{{ total }}</strong> produtor{{ total|pluralize:"es" }} com evento em cartaz
+    </p>
+
+    {% if pagina.object_list %}
+        <div class="grade-produtores">
+            {% for produtor in pagina %}
+                <a class="card-produtor" href="{{ produtor.get_absolute_url }}">
+                    <span class="card-produtor-logo">
+                        {% if produtor.logo_exibicao %}
+                            <img src="{{ produtor.logo_exibicao }}" alt="" width="96" height="96" loading="lazy" decoding="async">
+                        {% else %}
+                            {% icone "pessoas" 28 %}
+                        {% endif %}
+                    </span>
+                    <span class="card-produtor-corpo">
+                        <span class="card-produtor-nome">
+                            {{ produtor.nome }}
+                            {% if produtor.verificado %}
+                                <span class="selo selo-verificado" title="Produtor verificado">
+                                    {% icone "confirmado" 13 %}<span class="so-leitor">Verificado</span>
+                                </span>
+                            {% endif %}
+                        </span>
+                        <span class="card-produtor-total">{{ produtor.total }} evento{{ produtor.total|pluralize }}</span>
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+        {% include "eventos/partials/paginacao.html" %}
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "pessoas" 44 %}
+            <h2>Nenhum produtor com evento agora</h2>
+            <p>Organiza eventos em Brasília? Publique o seu e sua página aparece aqui.</p>
+            <a class="btn btn-primario" href="{% url 'criar_evento' %}">Publicar evento</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

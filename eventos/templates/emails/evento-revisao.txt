@@ -1,0 +1,18 @@
+Olá,
+
+Seu evento foi atualizado e voltou para a fila de revisão:
+
+  {{ evento.nome }}
+
+Isso acontece porque uma informação essencial mudou:
+{% for campo in campos %}
+  - {{ campo }}{% endfor %}
+
+Data, local e preço são o que as pessoas usam para decidir se vão. Quando um
+desses muda em um evento já publicado, conferimos de novo antes de ele voltar
+ao ar. É rápido — normalmente algumas horas.
+{% if url %}
+Acompanhe por aqui:
+{{ url }}
+{% endif %}
+— Equipe {{ SITE_NOME }}

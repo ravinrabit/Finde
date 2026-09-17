@@ -1,0 +1,86 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Política de cookies — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Quais cookies a Finde usa e por quê.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="pagina-topo">
+        <h1>Política de cookies</h1>
+        <p class="prosa-data">Atualizado em {{ atualizado_em }}</p>
+    </div>
+
+    <div class="prosa">
+        <p>
+            Cookies são pequenos arquivos que o navegador guarda para lembrar informações entre uma
+            página e outra. Esta página lista todos os que a {{ SITE_NOME }} usa.
+        </p>
+
+        <h2>O que usamos</h2>
+        <p>Hoje a {{ SITE_NOME }} usa só dois cookies, os dois estritamente necessários para o site funcionar:</p>
+        <ul class="lista-marcada">
+            <li>
+                <strong>Sessão (sessionid):</strong> mantém você conectado depois do login. Sem ele,
+                a plataforma pediria login de novo a cada página.
+            </li>
+            <li>
+                <strong>Segurança (csrftoken):</strong> protege os formulários do site contra
+                falsificação de requisição entre sites. É um cookie de segurança, não de rastreamento.
+            </li>
+        </ul>
+        <p>
+            Nenhum dos dois nos diz quem você é fora da {{ SITE_NOME }}, nenhum é lido por outro site,
+            e nenhum serve para publicidade.
+        </p>
+
+        <h2>O que não usamos</h2>
+        <p>
+            A {{ SITE_NOME }} não usa cookies de analytics (como Google Analytics), de publicidade, de
+            redes sociais ou de rastreamento entre sites. Por isso não exibimos um banner de consentimento
+            de cookies: como só usamos os dois cookies técnicos acima, a LGPD não exige esse pedido de
+            permissão — ele existe principalmente para cookies não essenciais, que não é o nosso caso.
+        </p>
+        <p>
+            Se isso mudar — por exemplo, se passarmos a usar uma ferramenta de estatísticas de visitas —,
+            esta página e um aviso de consentimento serão atualizados antes da mudança entrar no ar.
+        </p>
+
+        <h2>Recursos carregados de fora</h2>
+        <p>
+            Duas páginas do site carregam arquivos de outros servidores para funcionar. Isso não é um
+            cookie, mas envolve o seu navegador conversando com outro serviço, então preferimos deixar
+            claro aqui também:
+        </p>
+        <ul class="lista-marcada">
+            <li>
+                <strong>Fontes (Google Fonts):</strong> as letras do site (Archivo e Inter) são carregadas
+                do servidor do Google ao abrir qualquer página. O Google recebe o endereço IP de quem
+                acessa para poder entregar o arquivo da fonte, segundo a
+                <a href="https://developers.google.com/fonts/faq/privacy" target="_blank" rel="noopener">política de privacidade do Google Fonts</a>.
+            </li>
+            <li>
+                <strong>Mapa (Leaflet e OpenStreetMap):</strong> só na página do
+                <a href="{% url 'mapa_eventos' %}">mapa de eventos</a>, o site baixa a biblioteca Leaflet
+                de um servidor de distribuição de código (unpkg.com) e as imagens do mapa do
+                OpenStreetMap. Os dois recebem o IP de quem está vendo o mapa naquele momento.
+            </li>
+        </ul>
+        <p>
+            Nenhum desses serviços é usado pela {{ SITE_NOME }} para te identificar entre visitas ou
+            para publicidade — eles só entregam a fonte e o mapa que a página pediu.
+        </p>
+
+        <h2>Como gerenciar</h2>
+        <p>
+            Todo navegador permite bloquear ou apagar cookies nas configurações de privacidade. Bloquear
+            o cookie de sessão significa que você não vai conseguir ficar conectado à sua conta.
+        </p>
+
+        <h2>Dúvidas</h2>
+        <p>
+            Veja também a nossa <a href="{% url 'privacidade' %}">política de privacidade</a>, ou escreva
+            pela <a href="{% url 'contato' %}">página de contato</a>.
+        </p>
+    </div>
+</div>
+{% endblock %}

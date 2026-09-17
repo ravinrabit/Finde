@@ -1,0 +1,22 @@
+# Produção. Instale por cima do requirements.txt.
+-r requirements.txt
+
+# Servidor de aplicação.
+gunicorn>=23.0
+
+# PostgreSQL (DB_ENGINE=postgres).
+psycopg[binary]>=3.2
+
+# Cache compartilhado entre workers (CACHE_BACKEND=redis).
+# Sem isto, use CACHE_BACKEND=db — que não exige pacote nenhum, só
+# "manage.py createcachetable". Com locmem e vários workers, o rate limiting
+# passa a contar por processo e deixa de valer.
+redis>=5.0
+
+# Armazenamento de mídia em S3 / Cloudflare R2 (MEDIA_BACKEND=s3).
+# Sem isto, as capas enviadas ficam no disco do servidor e somem em todo
+# deploy que troque de máquina ou contêiner.
+django-storages[s3]>=1.14
+
+# Rastreamento de exceções (SENTRY_DSN).
+sentry-sdk[django]>=2.0

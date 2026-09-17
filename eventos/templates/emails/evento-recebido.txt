@@ -1,0 +1,19 @@
+Olá!
+
+Recebemos o seu evento:
+
+  {{ evento.nome }}
+  {{ evento.data|date:"l, j \d\e F \d\e Y, H:i" }}
+  {{ evento.local }}{% if evento.endereco %} — {{ evento.endereco }}{% endif %}
+
+Ele está na fila de revisão. Conferimos data, local e conteúdo antes de publicar,
+para manter a agenda de Brasília confiável. Costuma levar até um dia útil.
+
+Você recebe outro e-mail assim que ele estiver no ar.
+{% if url %}
+Enquanto isso, você pode revisar e corrigir o que quiser:
+{{ url }}
+{% endif %}
+Precisa de ajuda? Responda este e-mail ou escreva para {{ EMAIL_CONTATO }}.
+
+— Equipe {{ SITE_NOME }}

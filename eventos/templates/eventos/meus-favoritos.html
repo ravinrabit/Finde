@@ -1,0 +1,27 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Favoritos — {{ SITE_NOME }}{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <h1>Favoritos</h1>
+        <p class="pagina-apoio">Os eventos que você salvou para decidir depois.</p>
+    </div>
+
+    {% if eventos %}
+        <div class="grade-eventos">
+            {% for evento in eventos %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "coracao" 44 %}
+            <h2>Você ainda não salvou nada</h2>
+            <p>Use o coração nos cards para guardar um evento e voltar nele depois.</p>
+            <a class="btn btn-primario" href="{% url 'lista_eventos' %}">Explorar a agenda</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

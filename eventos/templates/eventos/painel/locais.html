@@ -1,0 +1,55 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}Locais — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}Locais{% endblock %}
+{% block painel_apoio %}Onde os eventos acontecem, com coordenada para o mapa.{% endblock %}
+{% block nav_painel_locais %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+<div class="pagina-acoes">
+    <a class="btn btn-primario" href="{% url 'painel_local_criar' %}">Novo local</a>
+</div>
+
+<form class="painel-busca" method="get" role="search">
+    <label class="so-leitor" for="painel-busca-local">Buscar local</label>
+    <input type="search" id="painel-busca-local" name="busca" value="{{ busca }}" placeholder="Nome do local">
+    <button type="submit" class="btn btn-p btn-contorno">Buscar</button>
+</form>
+
+{% if pagina.object_list %}
+    <div class="lista-gerencia">
+        {% for local in pagina %}
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-info">
+                {% if local.tem_coordenadas %}
+                    <span class="selo {% if local.coordenada_aproximada %}selo-pendente{% else %}selo-verificado{% endif %}">
+                        {% if local.coordenada_aproximada %}Coordenada aproximada{% else %}Coordenada exata{% endif %}
+                    </span>
+                {% else %}
+                    <span class="selo selo-rejeitado">Sem coordenada</span>
+                {% endif %}
+                <h2 class="linha-gerencia-titulo">{{ local.nome }}</h2>
+                <p class="linha-gerencia-meta">
+                    {{ local.get_regiao_display|default:"Sem região" }}
+                    · {{ local.eventos.count }} evento{{ local.eventos.count|pluralize }}
+                </p>
+            </div>
+            <div class="linha-gerencia-acoes">
+                <a class="btn btn-p btn-fantasma" href="{{ local.get_absolute_url }}" target="_blank" rel="noopener">Ver página</a>
+                <a class="btn btn-p btn-contorno" href="{% url 'painel_local_editar' local.slug %}">Editar</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% include "eventos/partials/paginacao.html" %}
+{% else %}
+    <div class="estado-vazio">
+        {% icone "vazio" 44 %}
+        <h2>Nada por aqui</h2>
+        <p>Não há locais para esta busca.</p>
+    </div>
+{% endif %}
+
+{% endblock %}

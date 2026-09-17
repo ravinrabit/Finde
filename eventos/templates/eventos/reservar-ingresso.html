@@ -1,0 +1,111 @@
+{% extends "eventos/base.html" %}
+{% load l10n %}
+
+{% block titulo %}Reservar — {{ evento.nome }} | {{ SITE_NOME }}{% endblock %}
+{% block nav_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <a class="conta-voltar" href="{{ evento.get_absolute_url }}">
+            {% icone "seta-esquerda" 16 %} Voltar para o evento
+        </a>
+        <h1>Reservar ingresso</h1>
+        <p class="pagina-apoio">Confira os dados abaixo e confirme. Seu ingresso fica disponível em Meus ingressos.</p>
+    </div>
+
+    <form class="reserva-layout" method="post" data-reserva="{% if preco_definido %}definido{% else %}indefinido{% endif %}">
+        {% csrf_token %}
+
+        <div class="reserva-card">
+            {% if esgotado %}
+                <div class="aviso aviso-erro" role="status">
+                    {% icone "alerta" 20 %}
+                    <span>Este evento está esgotado. Se alguém cancelar, a vaga volta a aparecer aqui.</span>
+                </div>
+            {% elif maximo < 1 %}
+                <div class="aviso aviso-warning" role="status">
+                    {% icone "alerta" 20 %}
+                    <span>Você já reservou o máximo permitido para este evento
+                    ({{ evento.limite_por_usuario }} por pessoa).</span>
+                </div>
+            {% endif %}
+
+            {% if not preco_definido %}
+                <div class="form-aviso">
+                    {% icone "alerta" 20 %}
+                    <span>O organizador ainda não informou o valor. Você pode reservar mesmo assim — o preço será confirmado antes da cobrança.</span>
+                </div>
+            {% endif %}
+
+            <fieldset class="reserva-opcoes">
+                <legend>Tipo de ingresso</legend>
+
+                <label class="reserva-opcao">
+                    <input type="radio" name="tipo" value="inteira" data-valor="{{ valor_inteira|unlocalize }}"
+                           {% if tipo_selecionado != "meia" %}checked{% endif %}>
+                    <span class="reserva-opcao-texto">
+                        <span class="reserva-opcao-nome">Inteira</span>
+                        <span class="reserva-opcao-valor">{% if preco_definido %}{{ valor_inteira|reais }}{% else %}A definir{% endif %}</span>
+                    </span>
+                </label>
+
+                <label class="reserva-opcao">
+                    <input type="radio" name="tipo" value="meia" data-valor="{{ valor_meia|unlocalize }}"
+                           {% if tipo_selecionado == "meia" %}checked{% endif %}>
+                    <span class="reserva-opcao-texto">
+                        <span class="reserva-opcao-nome">Meia-entrada</span>
+                        <span class="reserva-opcao-valor">{% if preco_definido %}{{ valor_meia|reais }}{% else %}A definir{% endif %}</span>
+                    </span>
+                </label>
+            </fieldset>
+
+            <div class="campo-grupo">
+                <label for="quantidade">Quantidade</label>
+                <input type="number" id="quantidade" name="quantidade" value="1"
+                       min="1" max="{{ maximo|unlocalize }}"
+                       inputmode="numeric" data-reserva-quantidade
+                       aria-describedby="ajuda-quantidade"
+                       {% if maximo < 1 %}disabled{% endif %}>
+                <p class="campo-ajuda" id="ajuda-quantidade">
+                    {% if ja_reservados %}
+                        Você já tem {{ ja_reservados }} ingresso{{ ja_reservados|pluralize }} para este evento.
+                    {% endif %}
+                    Máximo de {{ evento.limite_por_usuario }} por pessoa.
+                    {% if vagas is not None %} Restam {{ vagas }} vaga{{ vagas|pluralize }} no total.{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <aside class="resumo-card">
+            <div class="resumo-evento">
+                {% if evento.imagem_exibicao %}
+                    <img src="{{ evento.imagem_exibicao }}" alt="" width="72" height="72" loading="lazy" decoding="async">
+                {% endif %}
+                <div>
+                    <h2 class="bilhete-titulo">{{ evento.nome }}</h2>
+                    <p class="bilhete-meta">{{ evento|quando }}</p>
+                    <p class="bilhete-meta">{{ evento.local }}</p>
+                </div>
+            </div>
+
+            <div class="resumo-linha">
+                <span>Valor unitário</span>
+                <span data-reserva-unitario>—</span>
+            </div>
+            <div class="resumo-total">
+                <span>Total</span>
+                <span class="resumo-total-valor" data-reserva-total>—</span>
+            </div>
+
+            <button type="submit" class="btn btn-primario btn-g btn-cheio"
+                    {% if esgotado or maximo < 1 %}disabled{% endif %}>
+                Confirmar reserva
+            </button>
+            <p class="painel-nota">Você pode cancelar a qualquer momento antes do evento.</p>
+        </aside>
+    </form>
+
+</div>
+{% endblock %}

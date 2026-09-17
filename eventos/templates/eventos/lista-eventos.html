@@ -1,0 +1,146 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}{{ titulo_pagina }} — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}{{ descricao_pagina }}{% endblock %}
+{% block og_titulo %}{{ titulo_pagina }} — {{ SITE_NOME }}{% endblock %}
+{% block og_descricao %}{{ descricao_pagina }}{% endblock %}
+{% block nav_eventos %}aria-current="page"{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="pagina-topo">
+        {% if faceta %}
+            <nav class="trilha" aria-label="Você está aqui">
+                <a href="{% url 'home' %}">Início</a>
+                <span aria-hidden="true">›</span>
+                <a href="{% url 'lista_eventos' %}">Eventos</a>
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">{{ faceta.nome }}</span>
+            </nav>
+        {% endif %}
+
+        <h1>{{ titulo_pagina }}</h1>
+        <p class="pagina-apoio">{{ descricao_pagina }}</p>
+    </div>
+
+    <div class="pagina-acoes">
+        <button type="button" class="btn btn-contorno filtros-gatilho" data-filtros-gatilho
+                aria-expanded="false" aria-controls="painel-filtros">
+            <span>Filtrar e ordenar</span>
+            {% icone "busca" 18 %}
+        </button>
+        <button type="button" class="btn btn-contorno" data-perto-de-mim data-raio="5">
+            {% icone "pino" 16 %} <span data-rotulo>Perto de mim</span>
+        </button>
+        <a class="btn btn-contorno" href="{% url 'mapa_eventos' %}{% querystring_sem 'page' %}">
+            {% icone "globo" 16 %} Ver no mapa
+        </a>
+    </div>
+    <p class="aviso aviso-erro" data-localizacao-erro hidden role="status">
+        Não conseguimos acessar sua localização. Verifique a permissão do navegador,
+        ou filtre por região aqui embaixo.
+    </p>
+
+    <div class="filtros-corpo" id="painel-filtros" data-filtros-corpo>
+        <form class="filtros" method="get" data-filtros-form>
+            {# Coordenadas vêm do botão "perto de mim" e precisam sobreviver a um novo filtro. #}
+            {{ form.lat }}
+            {{ form.lon }}
+
+            <div class="filtros-grade">
+                <div class="filtros-campo">
+                    <label for="{{ form.q.id_for_label }}">{{ form.q.label }}</label>
+                    {{ form.q }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+                    {{ form.categoria }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.regiao.id_for_label }}">{{ form.regiao.label }}</label>
+                    {{ form.regiao }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.periodo.id_for_label }}">{{ form.periodo.label }}</label>
+                    {{ form.periodo }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.de.id_for_label }}">{{ form.de.label }}</label>
+                    {{ form.de }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.ate.id_for_label }}">{{ form.ate.label }}</label>
+                    {{ form.ate }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.preco.id_for_label }}">{{ form.preco.label }}</label>
+                    {{ form.preco }}
+                </div>
+                <div class="filtros-campo">
+                    <label for="{{ form.raio.id_for_label }}">{{ form.raio.label }}</label>
+                    {{ form.raio }}
+                    <p class="campo-ajuda">Precisa da sua localização — use o botão “Perto de mim”.</p>
+                </div>
+            </div>
+
+            <fieldset class="filtros-acessibilidade">
+                <legend>{{ form.acesso.label }}</legend>
+                {{ form.acesso }}
+            </fieldset>
+
+            <div class="filtros-rodape">
+                <button type="submit" class="btn btn-primario">Aplicar filtros</button>
+                <a class="btn btn-texto" href="{{ request.path }}">Limpar</a>
+            </div>
+        </form>
+    </div>
+
+    {% include "eventos/partials/fichas-filtro.html" %}
+
+    <div class="resultados-linha">
+        <p class="resultados-total" role="status">
+            {% if total %}
+                <strong>{{ total }}</strong> evento{{ total|pluralize }} encontrado{{ total|pluralize }}
+            {% else %}
+                Nenhum evento encontrado
+            {% endif %}
+        </p>
+
+        {# Segundo formulário com [data-filtros-form]: o JS agora escuta os DOIS. #}
+        <form method="get" data-filtros-form class="form-ordenar">
+            {% for filtro in filtros_ativos %}
+                <input type="hidden" name="{{ filtro.nome }}" value="{{ filtro.valor }}">
+            {% endfor %}
+            {% if form.lat.value %}<input type="hidden" name="lat" value="{{ form.lat.value }}">{% endif %}
+            {% if form.lon.value %}<input type="hidden" name="lon" value="{{ form.lon.value }}">{% endif %}
+            <div class="filtros-campo">
+                <label class="so-leitor" for="{{ form.ordenar.id_for_label }}">{{ form.ordenar.label }}</label>
+                {{ form.ordenar }}
+            </div>
+            <noscript><button type="submit" class="btn btn-p btn-contorno">Ordenar</button></noscript>
+        </form>
+    </div>
+
+    {% if eventos %}
+        <div class="grade-eventos">
+            {% for evento in eventos %}{% include "eventos/partials/card-evento.html" %}{% endfor %}
+        </div>
+        {% include "eventos/partials/paginacao.html" %}
+    {% else %}
+        <div class="estado-vazio">
+            {% icone "busca" 44 %}
+            <h2>Nada encontrado com esses filtros</h2>
+            <p>
+                Tente ampliar a busca: outra região, um período maior ou sem o filtro de preço.
+                A agenda de Brasília muda toda semana.
+            </p>
+            <div class="estado-vazio-acoes">
+                <a class="btn btn-primario" href="{% url 'lista_eventos' %}">Ver todos os eventos</a>
+                <a class="btn btn-contorno" href="{% url 'eventos_gratuitos' %}">Só os gratuitos</a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

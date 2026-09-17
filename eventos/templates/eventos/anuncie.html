@@ -1,0 +1,47 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Anuncie no {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Destaque seu evento na agenda de Brasília.{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Destaque seu evento</h1>
+        <p class="pagina-apoio">
+            Todo evento aprovado aparece de graça na agenda. Quem quer mais visibilidade pode
+            escolher um plano de destaque.
+        </p>
+    </div>
+
+    <div class="lista-gerencia">
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-info">
+                <h2 class="linha-gerencia-titulo">Normal — grátis</h2>
+                <p class="linha-gerencia-meta">Aparece normalmente na agenda, por ordem de data.</p>
+            </div>
+        </article>
+        {% for plano in planos %}
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-info">
+                <h2 class="linha-gerencia-titulo">{{ plano.nome }} — R$ {{ plano.preco }}</h2>
+                <p class="linha-gerencia-meta">{{ plano.beneficio }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div class="prosa">
+        <h2>Como funciona</h2>
+        <p>
+            Publique seu evento normalmente. Depois de aprovado, na página
+            <a href="{% url 'meus_eventos' %}">Meus eventos</a> tem um botão para pedir destaque —
+            escolha o plano, combine o pagamento com a equipe e o destaque é ativado assim que
+            confirmarmos.
+        </p>
+        <p>
+            Ainda não tem uma conta? <a href="{% url 'cadastro' %}">Crie uma gratuitamente</a> e
+            publique seu primeiro evento.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erro no servidor — Finde</title>
+<link rel="icon" href="{% static 'img/favicon-32.png' %}" sizes="32x32">
+<link rel="stylesheet" href="{% static 'css/finde.css' %}">
+</head>
+<body>
+<main>
+    <div class="container">
+        <div class="erro-pagina">
+            <p class="erro-codigo">500</p>
+            <h1>Algo quebrou do nosso lado</h1>
+            <p class="pagina-apoio">
+                O erro foi registrado e a equipe já foi notificada. Tente de novo em alguns instantes.
+            </p>
+            <a class="btn btn-primario btn-g" href="/">Voltar para a home</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

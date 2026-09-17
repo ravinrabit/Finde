@@ -1,0 +1,21 @@
+Reserva confirmada, {{ usuario.first_name|default:"tudo certo" }}!
+
+  {{ evento.nome }}
+  {{ evento.data|date:"l, j \d\e F \d\e Y, H:i" }}
+  {{ evento.local }}{% if evento.endereco %} — {{ evento.endereco }}{% endif %}
+
+Ingresso{{ reserva.quantidade|pluralize }}: {{ reserva.quantidade }} ({{ reserva.tipo }})
+
+Códigos:
+{% for ingresso in reserva.ingressos %}  {{ ingresso.codigo_curto }}
+{% endfor %}
+Apresente o código na entrada. Não precisa imprimir nada.
+{% if url %}
+Página do evento:
+{{ url }}
+{% endif %}
+Seus ingressos ficam sempre disponíveis em "Meus ingressos", no site.
+
+Não vai mais poder ir? Cancele por lá — a vaga volta para outra pessoa.
+
+— {{ SITE_NOME }}

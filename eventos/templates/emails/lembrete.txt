@@ -1,0 +1,16 @@
+É amanhã.
+
+  {{ evento.nome }}
+  {{ evento.data|date:"l, j \d\e F, H:i" }}
+  {{ evento.local }}{% if evento.endereco %}
+  {{ evento.endereco }}{% endif %}
+{% if ingressos %}
+Seu{{ ingressos|pluralize }} código{{ ingressos|pluralize:"s" }}:
+{% for ingresso in ingressos %}  {{ ingresso.codigo_curto }}
+{% endfor %}{% endif %}
+{% if url %}Detalhes, mapa e como chegar:
+{{ url }}
+{% endif %}
+Bom evento!
+
+— {{ SITE_NOME }}

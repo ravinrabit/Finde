@@ -1,0 +1,22 @@
+Olá,
+
+Não conseguimos publicar o seu evento:
+
+  {{ evento.nome }}
+
+{% if motivo %}Motivo:
+
+  {{ motivo }}
+
+{% else %}A revisão apontou um problema, mas o motivo não foi registrado.
+Responda este e-mail e explicamos exatamente o que precisa mudar.
+
+{% endif %}Isso não é definitivo. Corrija o que foi apontado e o evento volta
+automaticamente para a fila de revisão.
+{% if url %}
+Editar o evento:
+{{ url }}
+{% endif %}
+Qualquer dúvida, escreva para {{ EMAIL_CONTATO }}.
+
+— Equipe {{ SITE_NOME }}

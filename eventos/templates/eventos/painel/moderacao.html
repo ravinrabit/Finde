@@ -1,0 +1,95 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}Moderação de eventos — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}Moderação de eventos{% endblock %}
+{% block painel_apoio %}Aprove, rejeite ou arquive eventos enviados para revisão.{% endblock %}
+{% block nav_painel_moderacao %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+<div class="pagina-acoes">
+    <a class="btn btn-primario" href="{% url 'painel_evento_criar' %}">Novo evento</a>
+</div>
+
+<div class="painel-filtro-status">
+    <a class="selo selo-pendente" href="?status=pendente" {% if status_atual == "pendente" %}aria-current="page"{% endif %}>Pendentes</a>
+    <a class="selo selo-publicado" href="?status=publicado" {% if status_atual == "publicado" %}aria-current="page"{% endif %}>Publicados</a>
+    <a class="selo selo-rejeitado" href="?status=rejeitado" {% if status_atual == "rejeitado" %}aria-current="page"{% endif %}>Rejeitados</a>
+    <a class="selo selo-arquivado" href="?status=arquivado" {% if status_atual == "arquivado" %}aria-current="page"{% endif %}>Arquivados</a>
+    <a class="selo selo-neutro" href="?status=" {% if not status_atual %}aria-current="page"{% endif %}>Todos</a>
+</div>
+
+<form class="painel-busca" method="get" role="search">
+    <input type="hidden" name="status" value="{{ status_atual }}">
+    <label class="so-leitor" for="painel-busca-evento">Buscar por nome ou produtor</label>
+    <input type="search" id="painel-busca-evento" name="busca" value="{{ busca }}" placeholder="Nome do evento ou produtor">
+    <button type="submit" class="btn btn-p btn-contorno">Buscar</button>
+</form>
+
+{% if pagina.object_list %}
+    <div class="lista-gerencia">
+        {% for evento in pagina %}
+        <article class="linha-gerencia">
+            <div class="linha-gerencia-capa">
+                {% if evento.imagem_exibicao %}
+                    <img src="{{ evento.imagem_exibicao }}" alt="" loading="lazy" width="96" height="72">
+                {% endif %}
+            </div>
+            <div class="linha-gerencia-info">
+                <span class="selo selo-{{ evento.status }}">{{ evento.get_status_display }}</span>
+                <h2 class="linha-gerencia-titulo">{{ evento.nome }}</h2>
+                <p class="linha-gerencia-meta">
+                    {{ evento|quando }} · {{ evento.local }}
+                    {% if evento.produtor %} · {{ evento.produtor.nome }}{% endif %}
+                </p>
+                {% if evento.status == "rejeitado" and evento.motivo_rejeicao %}
+                    <p class="campo-erro">{% icone "alerta" 14 %} {{ evento.motivo_rejeicao }}</p>
+                {% endif %}
+            </div>
+            <div class="linha-gerencia-acoes">
+                <a class="btn btn-p btn-fantasma" href="{{ evento.get_absolute_url }}" target="_blank" rel="noopener">Ver página</a>
+                <a class="btn btn-p btn-contorno" href="{% url 'painel_evento_editar' evento.slug %}">Editar</a>
+
+                {% if evento.status != "publicado" %}
+                <form method="post" action="{% url 'painel_evento_publicar' evento.slug %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-p btn-primario">Publicar</button>
+                </form>
+                {% endif %}
+
+                {% if evento.status != "rejeitado" %}
+                <details class="painel-rejeitar">
+                    <summary class="btn btn-p btn-perigo">Rejeitar</summary>
+                    <form class="painel-rejeitar-corpo" method="post" action="{% url 'painel_evento_rejeitar' evento.slug %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                        <label class="so-leitor" for="motivo-{{ evento.pk }}">Motivo da rejeição</label>
+                        <textarea id="motivo-{{ evento.pk }}" name="motivo" rows="3" placeholder="Explique o que precisa ser corrigido">{{ evento.motivo_rejeicao }}</textarea>
+                        <button type="submit" class="btn btn-p btn-perigo">Confirmar rejeição</button>
+                    </form>
+                </details>
+                {% endif %}
+
+                {% if evento.status != "arquivado" %}
+                <form method="post" action="{% url 'painel_evento_arquivar' evento.slug %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-p btn-fantasma">Arquivar</button>
+                </form>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% include "eventos/partials/paginacao.html" %}
+{% else %}
+    <div class="estado-vazio">
+        {% icone "vazio" 44 %}
+        <h2>Nada por aqui</h2>
+        <p>Não há eventos para este filtro.</p>
+    </div>
+{% endif %}
+
+{% endblock %}

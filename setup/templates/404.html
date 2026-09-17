@@ -1,0 +1,20 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Página não encontrada — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}A página que você procurou não existe.{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="erro-pagina">
+        <p class="erro-codigo">404</p>
+        <h1>Não encontramos essa página</h1>
+        <p class="pagina-apoio">
+            O endereço não existe ou o evento saiu do ar. A agenda de Brasília continua acontecendo.
+        </p>
+        <div class="bilhete-acoes">
+            <a class="btn btn-primario btn-g" href="{% url 'lista_eventos' %}">Ver a agenda</a>
+            <a class="btn btn-contorno btn-g" href="{% url 'home' %}">Ir para a home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

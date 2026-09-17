@@ -1,0 +1,116 @@
+{% extends "eventos/painel/_base.html" %}
+
+{% block titulo %}Administração — {{ SITE_NOME }}{% endblock %}
+{% block painel_titulo %}Visão geral{% endblock %}
+{% block painel_apoio %}Estatísticas e atalhos para o dia a dia da moderação.{% endblock %}
+{% block nav_painel_dashboard %}aria-current="page"{% endblock %}
+
+{% block painel_conteudo %}
+
+<div class="painel-numeros">
+    <a class="painel-numero" href="{% url 'painel_moderacao' %}?status=pendente">
+        <strong>{{ estatisticas.eventos_pendentes }}</strong>
+        <span>Pendentes</span>
+    </a>
+    <a class="painel-numero" href="{% url 'painel_moderacao' %}?status=publicado">
+        <strong>{{ estatisticas.eventos_publicados }}</strong>
+        <span>Publicados</span>
+    </a>
+    <a class="painel-numero" href="{% url 'painel_moderacao' %}?status=rejeitado">
+        <strong>{{ estatisticas.eventos_rejeitados }}</strong>
+        <span>Rejeitados</span>
+    </a>
+    <a class="painel-numero" href="{% url 'painel_moderacao' %}?status=arquivado">
+        <strong>{{ estatisticas.eventos_arquivados }}</strong>
+        <span>Arquivados</span>
+    </a>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.eventos_acontecendo_hoje }}</strong>
+        <span>Acontecendo hoje</span>
+    </div>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.eventos_criados_na_semana }}</strong>
+        <span>Criados esta semana</span>
+    </div>
+    <a class="painel-numero" href="{% url 'painel_produtores' %}">
+        <strong>{{ estatisticas.produtores_nao_verificados }}</strong>
+        <span>Produtores a verificar</span>
+    </a>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.total_produtores }}</strong>
+        <span>Produtores no total</span>
+    </div>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.ingressos_confirmados_na_semana }}</strong>
+        <span>Ingressos esta semana</span>
+    </div>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.total_locais }}</strong>
+        <span>Locais cadastrados</span>
+    </div>
+    <div class="painel-numero">
+        <strong>{{ estatisticas.locais_sem_coordenada }}</strong>
+        <span>Locais sem coordenada</span>
+    </div>
+</div>
+
+<div class="cartao cartao-atalho">
+    <h2>Fila de moderação</h2>
+    {% if eventos_pendentes %}
+        <div class="lista-gerencia">
+            {% for evento in eventos_pendentes %}
+            <article class="linha-gerencia">
+                <div class="linha-gerencia-capa">
+                    {% if evento.imagem_exibicao %}
+                        <img src="{{ evento.imagem_exibicao }}" alt="" loading="lazy" width="96" height="72">
+                    {% endif %}
+                </div>
+                <div class="linha-gerencia-info">
+                    <span class="selo selo-{{ evento.status }}">{{ evento.get_status_display }}</span>
+                    <h3 class="linha-gerencia-titulo">{{ evento.nome }}</h3>
+                    <p class="linha-gerencia-meta">{{ evento|quando }} · {{ evento.local }}</p>
+                </div>
+                <div class="linha-gerencia-acoes">
+                    <a class="btn btn-p btn-contorno" href="{% url 'painel_moderacao' %}?status=pendente">Revisar</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <p class="pagina-nota">
+            <a href="{% url 'painel_moderacao' %}?status=pendente">Ver fila completa</a>
+        </p>
+    {% else %}
+        <p class="campo-ajuda">Nenhum evento aguardando aprovação.</p>
+    {% endif %}
+</div>
+
+<div class="cartao">
+    <h2>Produtores aguardando verificação</h2>
+    {% if produtores_pendentes %}
+        <div class="lista-gerencia">
+            {% for produtor in produtores_pendentes %}
+            <article class="linha-gerencia">
+                <div class="linha-gerencia-capa">
+                    {% if produtor.logo_exibicao %}
+                        <img src="{{ produtor.logo_exibicao }}" alt="" loading="lazy" width="96" height="72">
+                    {% endif %}
+                </div>
+                <div class="linha-gerencia-info">
+                    <h3 class="linha-gerencia-titulo">{{ produtor.nome }}</h3>
+                    <p class="linha-gerencia-meta">{{ produtor.email|default:"sem e-mail" }}</p>
+                </div>
+                <div class="linha-gerencia-acoes">
+                    <a class="btn btn-p btn-contorno" href="{% url 'painel_produtores' %}">Revisar</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <p class="pagina-nota">
+            <a href="{% url 'painel_produtores' %}">Ver todos</a>
+        </p>
+    {% else %}
+        <p class="campo-ajuda">Nenhum produtor pendente de verificação.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

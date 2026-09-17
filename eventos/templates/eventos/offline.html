@@ -1,0 +1,23 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Você está offline — {{ SITE_NOME }}{% endblock %}
+{% block descricao %}Sem conexão no momento.{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Você está offline</h1>
+    </div>
+
+    <div class="estado-vazio">
+        {% icone "globo" 40 %}
+        <h2>Sem conexão com a internet</h2>
+        <p>
+            Esta página ficou disponível porque o {{ SITE_NOME }} guarda uma cópia dela para consultas
+            rápidas, mas a agenda de eventos muda o tempo todo — assim que a conexão voltar, atualize
+            para ver a programação mais recente.
+        </p>
+        <button type="button" class="btn btn-primario" onclick="window.location.reload()">Tentar de novo</button>
+    </div>
+</div>
+{% endblock %}
