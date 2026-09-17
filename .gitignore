@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+env/
+
+# Banco local
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Segredos — NUNCA versionar
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Arquivos gerados
+media/
+staticfiles/
+cache/
+.coverage
+htmlcov/
+
+# Editores
+.vscode/
+.idea/
+.DS_Store
