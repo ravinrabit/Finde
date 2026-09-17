@@ -30,3 +30,4 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+db.sqlite3
