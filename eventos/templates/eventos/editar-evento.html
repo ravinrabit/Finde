@@ -69,18 +69,35 @@
             <h2 class="form-secao-titulo">Identidade do evento</h2>
             {% include "eventos/partials/campo.html" with campo=form.nome %}
 
-            <div class="campo-grupo {% if form.imagem.errors %}campo-invalido{% endif %}">
-                <span class="campo-rotulo">{{ form.imagem.label }}</span>
-                <label class="upload" for="{{ form.imagem.id_for_label }}" data-upload>
-                    <div class="upload-texto" data-upload-texto>
-                        {% icone "quadro" 32 %}
-                        <strong>Clique ou arraste a imagem</strong>
-                        <span class="upload-dica">Formato paisagem · JPG, PNG, WEBP ou GIF · até 5 MB</span>
-                    </div>
-                    <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da capa">
-                    {{ form.imagem }}
-                </label>
-                {% for erro in form.imagem.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+            <div class="campo-linha">
+                <div class="campo-grupo {% if form.imagem.errors %}campo-invalido{% endif %}">
+                    <span class="campo-rotulo">{{ form.imagem.label }}</span>
+                    <label class="upload" for="{{ form.imagem.id_for_label }}" data-upload>
+                        <div class="upload-texto" data-upload-texto>
+                            {% icone "quadro" 32 %}
+                            <strong>Clique ou arraste a imagem</strong>
+                            <span class="upload-dica">Formato paisagem · JPG, PNG, WEBP ou GIF · até 5 MB</span>
+                        </div>
+                        <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da capa">
+                        {{ form.imagem }}
+                    </label>
+                    {% for erro in form.imagem.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+                </div>
+
+                <div class="campo-grupo {% if form.banner.errors %}campo-invalido{% endif %}">
+                    <span class="campo-rotulo">{{ form.banner.label }}</span>
+                    <label class="upload" for="{{ form.banner.id_for_label }}" data-upload>
+                        <div class="upload-texto" data-upload-texto>
+                            {% icone "quadro" 32 %}
+                            <strong>Clique ou arraste o banner</strong>
+                            <span class="upload-dica">Formato largo · JPG, PNG, WEBP ou GIF · até 5 MB</span>
+                        </div>
+                        <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização do banner">
+                        {{ form.banner }}
+                    </label>
+                    <p class="campo-ajuda">{{ form.banner.help_text }}</p>
+                    {% for erro in form.banner.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+                </div>
             </div>
 
             {% include "eventos/partials/campo.html" with campo=form.resumo %}

@@ -13,4 +13,4 @@ Seu{{ ingressos|pluralize }} código{{ ingressos|pluralize:"s" }}:
 {% endif %}
 Bom evento!
 
-— {{ SITE_NOME }}
+— Equipe {{ SITE_NOME }}

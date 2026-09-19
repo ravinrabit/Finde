@@ -15,4 +15,4 @@ por lei sobre registros de acesso.
 
 Se a exclusão não foi você quem pediu, escreva imediatamente para {{ EMAIL_CONTATO }}.
 
-— {{ SITE_NOME }}
+— Equipe {{ SITE_NOME }}

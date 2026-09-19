@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
@@ -7,6 +8,8 @@ from django.utils.dateparse import parse_datetime
 
 from .base import EventoImportado, garantir_aware
 from .http import FonteIndisponivel, buscar
+
+logger = logging.getLogger("eventos")
 
 BLOCO_LD = re.compile(
     r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
@@ -87,6 +90,18 @@ def ler_oferta(offers):
     return (None, True) if menor == 0 else (menor, False)
 
 
+def ler_texto(valor):
+    # name/description do schema.org podem vir como string, lista (traduções)
+    # ou mapa de idiomas ({"@value": "..."} ou {"pt": "...", "en": "..."}).
+    if isinstance(valor, list):
+        valor = next((v for v in valor if v), None)
+    if isinstance(valor, dict):
+        valor = valor.get("@value") or next(
+            (v for v in valor.values() if isinstance(v, str) and v), ""
+        )
+    return valor.strip() if isinstance(valor, str) else ""
+
+
 def ler_organizador(organizer):
     if isinstance(organizer, list):
         organizer = next((x for x in organizer if x), None)
@@ -142,12 +157,12 @@ def para_importado(bloco, url, id_externo=None):
     preco, gratuito = ler_oferta(bloco.get("offers"))
     return EventoImportado(
         id_externo=(id_externo or url)[:120],
-        nome=(bloco.get("name") or "").strip()[:300],
+        nome=ler_texto(bloco.get("name"))[:300],
         data=inicio,
         data_fim=ler_data(bloco.get("endDate")),
         local=nome_local or "A confirmar",
         endereco=endereco,
-        descricao=(bloco.get("description") or "").strip()[:4000],
+        descricao=ler_texto(bloco.get("description"))[:4000],
         organizador=ler_organizador(bloco.get("organizer")),
         imagem_url=ler_imagem(bloco.get("image")),
         link_original=url,
@@ -166,7 +181,11 @@ def previa_de_link(url):
 
     blocos = extrair_blocos(html)
     if blocos:
-        importado = para_importado(blocos[0], url)
+        try:
+            importado = para_importado(blocos[0], url)
+        except Exception:
+            logger.warning("Bloco JSON-LD malformado em %s", url, exc_info=True)
+            importado = None
         if importado:
             return {
                 "nome": importado.nome,

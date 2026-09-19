@@ -849,7 +849,9 @@ def editar_evento(request, slug):
             from . import emails
 
             emails.evento_voltou_para_revisao(
-                evento, voltaram, request.build_absolute_uri(evento.get_absolute_url())
+                evento,
+                [ROTULO_CAMPO.get(campo, campo) for campo in voltaram],
+                request.build_absolute_uri(evento.get_absolute_url()),
             )
             messages.warning(
                 request,
@@ -890,14 +892,16 @@ def listar_campos(campos):
 
 
 def gerar_variantes_de_capa(evento):
-    if not evento.imagem:
-        return
-    try:
-        from .services import imagens
+    from .services import imagens
 
-        imagens.gerar_variantes(evento.imagem)
-    except Exception as erro:
-        logger.warning("Variantes da capa de %s falharam: %s", evento.pk, erro)
+    for campo, rotulo in (("imagem", "capa"), ("banner", "banner")):
+        arquivo = getattr(evento, campo)
+        if not arquivo:
+            continue
+        try:
+            imagens.gerar_variantes(arquivo)
+        except Exception as erro:
+            logger.warning("Variantes do(a) %s de %s falharam: %s", rotulo, evento.pk, erro)
 
 
 @login_required

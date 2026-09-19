@@ -251,7 +251,7 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
     class Meta:
         model = Evento
         fields = [
-            "nome", "imagem", "resumo", "descricao",
+            "nome", "imagem", "banner", "resumo", "descricao",
             "data", "data_fim",
             "modalidade", "local", "endereco", "regiao", "cidade",
             "categoria", "gratuito", "preco",
@@ -276,10 +276,12 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
             "organizador": forms.TextInput(attrs={"placeholder": "Quem realiza o evento"}),
             "link_ingressos": forms.URLInput(attrs={"placeholder": "https://…"}),
             "imagem": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+            "banner": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
         labels = {
             "nome": "Nome do evento",
             "imagem": "Imagem de capa",
+            "banner": "Banner promocional",
             "resumo": "Resumo",
             "descricao": "Descrição",
             "modalidade": "Formato",
@@ -295,6 +297,7 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
         }
         help_texts = {
             "resumo": "Aparece nos cards de listagem.",
+            "banner": "Opcional. Usado em destaques e banners promocionais — pode ser mais largo que a capa.",
             "capacidade": "Quando o total de reservas atinge esse número, o evento aparece como esgotado.",
             "link_ingressos": "Se a venda acontece em outra plataforma, informe o endereço aqui.",
         }
@@ -315,6 +318,9 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
 
     def clean_imagem(self):
         return validar_imagem(self.cleaned_data.get("imagem"))
+
+    def clean_banner(self):
+        return validar_imagem(self.cleaned_data.get("banner"))
 
     def clean_data(self):
         data = self.cleaned_data["data"]

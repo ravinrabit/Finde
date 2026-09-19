@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from ..constants import normalizar
 from ..models import Evento, Local, Produtor
@@ -22,9 +22,15 @@ def resolver_local(nome, endereco="", regiao="", cidade="Brasília"):
         if mudou:
             local.save(update_fields=mudou)
         return local
-    return Local.objects.create(
-        nome=nome, endereco=(endereco or "")[:300], regiao=regiao or "", cidade=cidade or "Brasília"
-    )
+    try:
+        with transaction.atomic():
+            return Local.objects.create(
+                nome=nome, endereco=(endereco or "")[:300], regiao=regiao or "", cidade=cidade or "Brasília"
+            )
+    except IntegrityError:
+        # Outra requisição criou o mesmo local entre o filter() e o create()
+        # acima — a constraint unique de nome_normalizado pegou a corrida.
+        return Local.objects.get(nome_normalizado=chave)
 
 
 def resolver_produtor(nome, user=None):
@@ -37,9 +43,13 @@ def resolver_produtor(nome, user=None):
         return None
     chave = normalizar(nome)[:200]
     produtor = Produtor.objects.filter(nome_normalizado=chave).first()
-    if produtor is None:
-        produtor = Produtor.objects.create(nome=nome, user=user)
-    return produtor
+    if produtor is not None:
+        return produtor
+    try:
+        with transaction.atomic():
+            return Produtor.objects.create(nome=nome, user=user)
+    except IntegrityError:
+        return Produtor.objects.get(nome_normalizado=chave)
 
 
 def geocodificar_se_necessario(local):

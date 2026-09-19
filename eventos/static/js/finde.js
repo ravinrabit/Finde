@@ -212,42 +212,42 @@
        ========================= */
 
     function iniciarUpload() {
-        const area = $("[data-upload]");
-        if (!area) return;
-        const entrada = $("input[type='file']", area);
-        const texto = $("[data-upload-texto]", area);
-        const previa = $("[data-upload-previa]", area);
-        if (!entrada || !previa) return;
+        $$("[data-upload]").forEach((area) => {
+            const entrada = $("input[type='file']", area);
+            const texto = $("[data-upload-texto]", area);
+            const previa = $("[data-upload-previa]", area);
+            if (!entrada || !previa) return;
 
-        const mostrar = (arquivo) => {
-            if (!arquivo || !arquivo.type.startsWith("image/")) return;
-            const leitor = new FileReader();
-            leitor.onload = (evento) => {
-                previa.src = evento.target.result;
-                previa.hidden = false;
-                if (texto) texto.hidden = true;
+            const mostrar = (arquivo) => {
+                if (!arquivo || !arquivo.type.startsWith("image/")) return;
+                const leitor = new FileReader();
+                leitor.onload = (evento) => {
+                    previa.src = evento.target.result;
+                    previa.hidden = false;
+                    if (texto) texto.hidden = true;
+                };
+                leitor.readAsDataURL(arquivo);
             };
-            leitor.readAsDataURL(arquivo);
-        };
 
-        entrada.addEventListener("change", () => mostrar(entrada.files[0]));
+            entrada.addEventListener("change", () => mostrar(entrada.files[0]));
 
-        ["dragover", "dragenter"].forEach((nome) =>
-            area.addEventListener(nome, (evento) => {
+            ["dragover", "dragenter"].forEach((nome) =>
+                area.addEventListener(nome, (evento) => {
+                    evento.preventDefault();
+                    area.dataset.arrastando = "";
+                })
+            );
+            ["dragleave", "dragend", "drop"].forEach((nome) =>
+                area.addEventListener(nome, () => delete area.dataset.arrastando)
+            );
+
+            area.addEventListener("drop", (evento) => {
                 evento.preventDefault();
-                area.dataset.arrastando = "";
-            })
-        );
-        ["dragleave", "dragend", "drop"].forEach((nome) =>
-            area.addEventListener(nome, () => delete area.dataset.arrastando)
-        );
-
-        area.addEventListener("drop", (evento) => {
-            evento.preventDefault();
-            const arquivos = evento.dataTransfer.files;
-            if (!arquivos.length) return;
-            entrada.files = arquivos;
-            mostrar(arquivos[0]);
+                const arquivos = evento.dataTransfer.files;
+                if (!arquivos.length) return;
+                entrada.files = arquivos;
+                mostrar(arquivos[0]);
+            });
         });
     }
 

@@ -204,11 +204,14 @@ def srcset(campo_imagem):
 
 
 @register.simple_tag
-def capa(evento, tamanhos="(max-width: 640px) 100vw, 400px", classe="", carregamento="lazy"):
-    url = evento.imagem_exibicao
+def capa(evento, tamanhos="(max-width: 640px) 100vw, 400px", classe="", carregamento="lazy", preferir_banner=False):
+    if preferir_banner and evento.banner:
+        arquivo, url = evento.banner, evento.banner.url
+    else:
+        arquivo, url = evento.imagem or None, evento.imagem_exibicao
     if not url:
         return ""
-    conjunto = srcset(evento.imagem) if evento.imagem else ""
+    conjunto = srcset(arquivo) if arquivo else ""
     atributos = [
         format_html('src="{}"', url),
         format_html('alt="{}"', evento.nome),

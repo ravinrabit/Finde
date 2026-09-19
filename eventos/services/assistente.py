@@ -36,7 +36,9 @@ class AssistenteIndisponivel(Exception):
 
 
 def contexto_de_eventos(pergunta):
-    eventos = servico_busca.aplicar(Evento.objects.visiveis().para_cards(), pergunta)
+    eventos = servico_busca.aplicar(
+        Evento.objects.visiveis().para_cards(), pergunta, qualquer=True
+    )
     eventos = eventos.order_by("data")[:MAXIMO_EVENTOS_NO_CONTEXTO]
     linhas = []
     for evento in eventos:

@@ -107,3 +107,23 @@ class LeitorJsonLdTests(TestCase):
 
     def test_evento_sem_data_e_descartado(self):
         self.assertIsNone(jsonld.para_importado({"@type": "Event", "name": "Sem data"}, "u"))
+
+    def test_nome_e_descricao_como_mapa_de_idioma_nao_derrubam(self):
+        bloco = {
+            "@type": "Event",
+            "name": {"pt": "Mostra de Cinema", "en": "Film Screening"},
+            "description": {"@value": "Descrição em destaque"},
+            "startDate": "2030-11-10T20:00:00-03:00",
+        }
+        item = jsonld.para_importado(bloco, "u")
+        self.assertEqual(item.nome, "Mostra de Cinema")
+        self.assertEqual(item.descricao, "Descrição em destaque")
+
+    def test_nome_como_lista_usa_o_primeiro_valor(self):
+        bloco = {
+            "@type": "Event",
+            "name": ["Mostra de Cinema", "Film Screening"],
+            "startDate": "2030-11-10T20:00:00-03:00",
+        }
+        item = jsonld.para_importado(bloco, "u")
+        self.assertEqual(item.nome, "Mostra de Cinema")

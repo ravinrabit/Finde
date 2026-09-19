@@ -77,7 +77,10 @@ class Local(models.Model):
     nome = models.CharField("nome", max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     # Chave de deduplicação: "Cine Brasília" e "Cine Brasilia" colidem aqui.
-    nome_normalizado = models.CharField(max_length=200, editable=False, db_index=True)
+    # unique=True fecha a corrida entre o filter().first() e o create() em
+    # resolver_local: duas requisições simultâneas para o mesmo local novo
+    # não criam mais dois registros.
+    nome_normalizado = models.CharField(max_length=200, editable=False, unique=True)
 
     endereco = models.CharField("endereço", max_length=300, blank=True)
     referencia = models.CharField("ponto de referência", max_length=200, blank=True)
@@ -113,7 +116,6 @@ class Local(models.Model):
         indexes = [
             models.Index(fields=["regiao"], name="eventos_loc_regiao_idx"),
             models.Index(fields=["latitude", "longitude"], name="eventos_loc_geo_idx"),
-            models.Index(fields=["nome_normalizado"], name="eventos_loc_nomenorm_idx"),
         ]
 
     def __str__(self):
@@ -176,7 +178,10 @@ class Produtor(models.Model):
     )
     nome = models.CharField("nome", max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    nome_normalizado = models.CharField(max_length=200, editable=False, db_index=True)
+    # unique=True fecha a corrida entre o filter().first() e o create() em
+    # resolver_produtor: dois produtores cadastrando o mesmo nome ao mesmo
+    # tempo não criam mais dois registros.
+    nome_normalizado = models.CharField(max_length=200, editable=False, unique=True)
 
     bio = models.TextField("descrição", blank=True)
     logo = models.ImageField(upload_to="produtores/%Y/%m/", blank=True)
@@ -200,7 +205,6 @@ class Produtor(models.Model):
         ordering = ["nome"]
         indexes = [
             models.Index(fields=["verificado"], name="eventos_pro_verif_idx"),
-            models.Index(fields=["nome_normalizado"], name="eventos_pro_nomenorm_idx"),
         ]
 
     def __str__(self):
@@ -351,6 +355,12 @@ class Evento(models.Model):
 
     imagem_url = models.URLField(max_length=600, blank=True)
     imagem = models.ImageField(upload_to="eventos/%Y/%m/", blank=True)
+    banner = models.ImageField(
+        "banner",
+        upload_to="eventos/banners/%Y/%m/",
+        blank=True,
+        help_text="Imagem larga, usada em destaques e banners promocionais.",
+    )
 
     fonte = models.CharField(max_length=50, default="manual")
     id_externo = models.CharField(max_length=120, blank=True)
@@ -569,7 +579,9 @@ class Evento(models.Model):
 
     @property
     def organizador_nome(self):
-        return self.produtor.nome if self.produtor_id else self.organizador
+        # Prioriza o texto digitado no evento (pode ser uma coprodução ou
+        # marca diferente do perfil) sobre o nome do perfil de produtor.
+        return self.organizador or (self.produtor.nome if self.produtor_id else "")
 
     @property
     def tem_coordenadas(self):

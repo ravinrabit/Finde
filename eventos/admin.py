@@ -136,7 +136,7 @@ class EventoAdmin(admin.ModelAdmin):
     list_select_related = ("criado_por", "local_ref", "produtor")
     readonly_fields = (
         "visualizacoes", "publicado_em", "criado_em", "atualizado_em",
-        "previa_imagem", "coordenadas", "ocupacao",
+        "previa_imagem", "previa_banner", "coordenadas", "ocupacao",
     )
     list_per_page = 40
     actions = ("publicar", "rejeitar", "arquivar", "marcar_destaque", "remover_destaque")
@@ -153,7 +153,16 @@ class EventoAdmin(admin.ModelAdmin):
                 ),
             },
         ),
-        ("Conteúdo", {"fields": ("resumo", "descricao", "imagem", "previa_imagem", "imagem_url")}),
+        (
+            "Conteúdo",
+            {
+                "fields": (
+                    "resumo", "descricao",
+                    "imagem", "previa_imagem", "imagem_url",
+                    "banner", "previa_banner",
+                )
+            },
+        ),
         ("Quando", {"fields": ("data", "data_fim")}),
         ("Onde", {"fields": ("modalidade", "local", "local_ref", "endereco", "regiao", "cidade", "coordenadas")}),
         ("Ingressos", {"fields": ("gratuito", "preco", "capacidade", "limite_por_usuario", "ocupacao", "link_ingressos")}),
@@ -167,6 +176,12 @@ class EventoAdmin(admin.ModelAdmin):
         if not url:
             return "—"
         return format_html('<img src="{}" height="160" alt="Prévia da capa">', url)
+
+    @admin.display(description="Prévia")
+    def previa_banner(self, obj):
+        if not obj.banner:
+            return "—"
+        return format_html('<img src="{}" height="160" alt="Prévia do banner">', obj.banner.url)
 
     @admin.display(description="Coordenadas")
     def coordenadas(self, obj):

@@ -217,3 +217,14 @@ class DestaquePainelTests(TestCase):
         self.solicitacao.refresh_from_db()
         self.assertEqual(self.evento.plano_destaque, PlanoDestaque.NORMAL)
         self.assertTrue(self.solicitacao.atendida)
+
+    def test_renovar_antes_de_vencer_soma_aos_dias_restantes(self):
+        dias_restantes = timezone.now() + timezone.timedelta(days=20)
+        self.evento.plano_destaque = PlanoDestaque.DESTAQUE
+        self.evento.destaque_pago_ate = dias_restantes
+        self.evento.save(update_fields=["plano_destaque", "destaque_pago_ate"])
+
+        self.client.post(reverse("painel_destaque_aprovar", args=[self.solicitacao.pk]))
+        self.evento.refresh_from_db()
+
+        self.assertGreater(self.evento.destaque_pago_ate, dias_restantes)

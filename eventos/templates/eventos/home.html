@@ -51,8 +51,8 @@
 
         {% if destaque_principal %}
             <a class="hero-cartaz" href="{{ destaque_principal.get_absolute_url }}">
-                {% if destaque_principal.imagem_exibicao %}
-                    {% capa destaque_principal "(max-width: 900px) 90vw, 600px" "" "eager" %}
+                {% if destaque_principal.banner or destaque_principal.imagem_exibicao %}
+                    {% capa destaque_principal "(max-width: 900px) 90vw, 600px" "" "eager" preferir_banner=True %}
                 {% endif %}
                 <div class="hero-cartaz-info">
                     <span class="selo selo-claro">Em destaque</span>

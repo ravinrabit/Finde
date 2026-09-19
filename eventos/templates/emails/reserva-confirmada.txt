@@ -18,4 +18,4 @@ Seus ingressos ficam sempre disponíveis em "Meus ingressos", no site.
 
 Não vai mais poder ir? Cancele por lá — a vaga volta para outra pessoa.
 
-— {{ SITE_NOME }}
+— Equipe {{ SITE_NOME }}

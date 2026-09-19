@@ -9,4 +9,4 @@ enquanto houver lugar.
 {% if url %}
 {{ url }}
 {% endif %}
-— {{ SITE_NOME }}
+— Equipe {{ SITE_NOME }}
