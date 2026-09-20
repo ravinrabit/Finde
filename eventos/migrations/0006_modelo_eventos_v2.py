@@ -187,7 +187,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="evento",
             name="slug",
-            field=models.SlugField(blank=True, default="", max_length=320),
+            # db_index=False de propósito: SlugField cria índice (e o "_like"
+            # do Postgres) por padrão, e o AlterField mais abaixo já cria o
+            # índice da constraint unique — sem isso, os dois colidem com o
+            # mesmo nome autogerado ("eventos_evento_slug_..._like") em
+            # qualquer banco Postgres novo.
+            field=models.SlugField(blank=True, default="", max_length=320, db_index=False),
         ),
         migrations.AddField(
             model_name="evento",
