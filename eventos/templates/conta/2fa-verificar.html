@@ -1,0 +1,26 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Verificação em duas etapas — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Confirma que é você{% endblock %}
+{% block arte_texto %}Abra o app de autenticação e digite o código de 6 dígitos que está na tela.{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Verificação em duas etapas</h1>
+    <p class="conta-apoio">Digite o código de 6 dígitos do seu app de autenticação.</p>
+
+    {% if form.non_field_errors or form.codigo.errors %}
+        <div class="form-aviso" role="alert">
+            {% icone "alerta" 20 %}
+            <span>
+                {% for erro in form.non_field_errors %}{{ erro }} {% endfor %}
+                {% for erro in form.codigo.errors %}{{ erro }} {% endfor %}
+            </span>
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "eventos/partials/campo.html" with campo=form.codigo %}
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Verificar</button>
+    </form>
+{% endblock %}

@@ -768,3 +768,41 @@ class AceiteDeTermos(models.Model):
 
     def __str__(self):
         return f"{self.usuario} — termos {self.versao_termos}"
+
+
+class DispositivoTOTP(models.Model):
+    """Segredo de autenticação em duas etapas de um usuário da equipe.
+
+    O segredo fica cifrado (services.cripto) — mesmo um vazamento do banco
+    sozinho não dá pra gerar os códigos de 6 dígitos sem a SECRET_KEY.
+    """
+
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dispositivo_totp"
+    )
+    segredo_cifrado = models.BinaryField()
+    confirmado = models.BooleanField(default=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "dispositivo de autenticação em duas etapas"
+        verbose_name_plural = "dispositivos de autenticação em duas etapas"
+
+    def __str__(self):
+        estado = "confirmado" if self.confirmado else "pendente"
+        return f"TOTP de {self.usuario} ({estado})"
+
+    def segredo(self):
+        from .services import cripto
+
+        return cripto.decifrar(self.segredo_cifrado)
+
+    @classmethod
+    def novo_para(cls, usuario, segredo):
+        from .services import cripto
+
+        dispositivo, _ = cls.objects.update_or_create(
+            usuario=usuario,
+            defaults={"segredo_cifrado": cripto.cifrar(segredo), "confirmado": False},
+        )
+        return dispositivo

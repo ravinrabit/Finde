@@ -84,6 +84,24 @@ class LoginForm(AuthenticationForm):
         return self.cleaned_data["username"].lower().strip()
 
 
+class VerificarTOTPForm(forms.Form):
+    codigo = forms.CharField(
+        label="Código de 6 dígitos",
+        min_length=6,
+        max_length=6,
+        widget=forms.TextInput(attrs={
+            "class": "campo",
+            "inputmode": "numeric",
+            "autocomplete": "one-time-code",
+            "placeholder": "000000",
+            "autofocus": True,
+        }),
+    )
+
+    def clean_codigo(self):
+        return self.cleaned_data["codigo"].strip()
+
+
 class CadastroForm(AcessibilidadeMixin, HCaptchaMixin, forms.Form):
     full_name = forms.CharField(
         label="Nome completo",

@@ -3,4 +3,5 @@ python-decouple==3.8
 Pillow>=11.0
 whitenoise>=6.8
 cryptography>=43.0
+qrcode[pil]>=8.0
 gunicorn

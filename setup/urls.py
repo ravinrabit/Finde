@@ -5,7 +5,6 @@ from django.contrib.auth import views as auth
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
-from eventos.forms import LoginForm
 from eventos.ratelimit import limitar
 from eventos.sitemaps import (
     CategoriaSitemap,
@@ -14,6 +13,11 @@ from eventos.sitemaps import (
     PaginasEstaticasSitemap,
     ProdutorSitemap,
     RegiaoSitemap,
+)
+from eventos.views_auth import (
+    LoginComDoisFatoresView,
+    dois_fatores_configurar,
+    dois_fatores_verificar,
 )
 
 SITEMAPS = {
@@ -27,14 +31,9 @@ SITEMAPS = {
 
 # Login e recuperação de senha são os alvos clássicos de força bruta. O limite
 # é aplicado aqui, envolvendo a view do Django, para não precisar reimplementar
-# nada de autenticação.
-login_view = limitar("login")(
-    auth.LoginView.as_view(
-        template_name="conta/login.html",
-        authentication_form=LoginForm,
-        redirect_authenticated_user=True,
-    )
-)
+# nada de autenticação. Quem é staff passa por 2FA dentro do próprio
+# LoginComDoisFatoresView antes de a sessão logada existir de verdade.
+login_view = limitar("login")(LoginComDoisFatoresView.as_view())
 
 reset_view = limitar("senha_reset")(
     auth.PasswordResetView.as_view(
@@ -48,6 +47,8 @@ reset_view = limitar("senha_reset")(
 # Todo o fluxo de autenticação usa o mesmo layout de duas colunas.
 contas = [
     path("entrar/", login_view, name="login"),
+    path("entrar/2fa/configurar/", dois_fatores_configurar, name="dois_fatores_configurar"),
+    path("entrar/2fa/verificar/", dois_fatores_verificar, name="dois_fatores_verificar"),
     path("sair/", auth.LogoutView.as_view(), name="logout"),
     path("senha/", reset_view, name="password_reset"),
     path(

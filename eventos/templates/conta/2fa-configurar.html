@@ -1,0 +1,37 @@
+{% extends "conta/base-conta.html" %}
+
+{% block titulo %}Configurar autenticação em duas etapas — {{ SITE_NOME }}{% endblock %}
+{% block arte_titulo %}Mais uma trava na porta{% endblock %}
+{% block arte_texto %}Quem tem acesso à equipe precisa de autenticação em duas etapas. Leva menos de dois minutos pra configurar.{% endblock %}
+
+{% block formulario %}
+    <h1 class="conta-titulo">Configurar autenticação em duas etapas</h1>
+    <p class="conta-apoio">
+        Abra o Google Authenticator, Authy ou outro app de autenticação e escaneie o código abaixo.
+        Se não conseguir escanear, digite o código manual no app.
+    </p>
+
+    {% if form.non_field_errors or form.codigo.errors %}
+        <div class="form-aviso" role="alert">
+            {% icone "alerta" 20 %}
+            <span>
+                {% for erro in form.non_field_errors %}{{ erro }} {% endfor %}
+                {% for erro in form.codigo.errors %}{{ erro }} {% endfor %}
+            </span>
+        </div>
+    {% endif %}
+
+    <p style="text-align:center; margin: 20px 0;">
+        <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR para configurar o app de autenticação" width="220" height="220">
+    </p>
+
+    <p class="campo-ajuda" style="text-align:center; word-break: break-all;">
+        Código manual: <strong>{{ segredo }}</strong>
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "eventos/partials/campo.html" with campo=form.codigo %}
+        <button type="submit" class="btn btn-primario btn-g btn-cheio">Confirmar e entrar</button>
+    </form>
+{% endblock %}

@@ -175,6 +175,7 @@ RATELIMITS = {
     "criar_evento": (10, 60 * 60),
     "excluir_conta": (5, 60 * 60),
     "assistente": (15, 60),
+    "dois_fatores": (10, 15 * 60),
 }
 
 
