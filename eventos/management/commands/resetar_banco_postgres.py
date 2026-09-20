@@ -26,7 +26,28 @@ class Command(BaseCommand):
             )
 
         with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"
+            )
+            antes = [linha[0] for linha in cursor.fetchall()]
+            self.stdout.write(f"Tabelas antes do reset: {antes}")
+
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
+            cursor.execute("GRANT ALL ON SCHEMA public TO CURRENT_USER;")
+            cursor.execute("GRANT ALL ON SCHEMA public TO public;")
 
-        self.stdout.write(self.style.SUCCESS("Esquema do Postgres limpo. Rode 'migrate' em seguida."))
+            cursor.execute(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"
+            )
+            depois = [linha[0] for linha in cursor.fetchall()]
+
+        connection.commit()
+
+        if depois:
+            raise CommandError(
+                f"O esquema ainda tem tabelas depois do reset: {depois}. "
+                "Verifique permissões do usuário do banco (precisa ser dono do schema)."
+            )
+
+        self.stdout.write(self.style.SUCCESS("Esquema do Postgres limpo e confirmado vazio."))
