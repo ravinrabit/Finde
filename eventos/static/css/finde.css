@@ -2928,6 +2928,10 @@ select {
 .mapa-popup span { color: var(--texto-medio); font-size: .85rem; }
 .mapa-popup em { color: var(--texto-fraco); font-size: .78rem; }
 
+/* Sem isso, o divIcon do Leaflet desenha uma caixa branca com borda atrás
+   do nosso SVG — o pin customizado já tem o próprio fundo. */
+.mapa-pin { background: transparent; border: none; }
+
 /* Os controles padrão do Leaflet (26×26px) são pequenos demais para o dedo.
    Em telas de toque, aumentamos o alvo de +/- de zoom e o popup para o
    tamanho mínimo recomendado, sem mexer no visual em telas com mouse. */

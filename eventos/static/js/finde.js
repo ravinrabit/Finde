@@ -416,6 +416,23 @@
         return destino.toString();
     }
 
+    function iconeDoMapa(tracadoSvg) {
+        return L.divIcon({
+            className: "mapa-pin",
+            html:
+                '<svg width="30" height="38" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">' +
+                '<path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 23 15 23s15-12.5 15-23C30 6.7 23.3 0 15 0Z" fill="#6b1173"/>' +
+                '<circle cx="15" cy="15" r="9.5" fill="#fff"/>' +
+                '<svg x="6.5" y="6.5" width="17" height="17" viewBox="0 0 24 24" fill="none" ' +
+                'stroke="#6b1173" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="' + tracadoSvg + '"/></svg>' +
+                '</svg>',
+            iconSize: [30, 38],
+            iconAnchor: [15, 38],
+            popupAnchor: [0, -34],
+        });
+    }
+
     async function desenharMapa(alvo) {
         const centro = [
             parseFloat(alvo.dataset.lat || "-15.7939"),
@@ -441,7 +458,7 @@
         (dados.features || []).forEach((item) => {
             const [lon, lat] = item.geometry.coordinates;
             const p = item.properties;
-            const marcador = L.marker([lat, lon]).addTo(mapa);
+            const marcador = L.marker([lat, lon], { icon: iconeDoMapa(p.icone) }).addTo(mapa);
             marcador.bindPopup(
                 '<a class="mapa-popup" href="' + p.url + '">' +
                 '<strong>' + escapar(p.nome) + '</strong>' +

@@ -48,6 +48,7 @@ from .models import Evento, Favorito, Ingresso, Local, Produtor, SolicitacaoDest
 from .ratelimit import excedeu, ip_do_pedido, limitar, resposta_429
 from .services import busca as servico_busca
 from .services import calendario, catalogo, lgpd, reservas
+from .templatetags.finde import TRACADOS
 
 logger = logging.getLogger("eventos")
 
@@ -422,6 +423,9 @@ def mapa_dados(request):
                 "quando": timezone.localtime(e.data).strftime("%d/%m %H:%M"),
                 "preco": e.preco_rotulo,
                 "categoria": e.get_categoria_display() if e.categoria else "",
+                "icone": TRACADOS.get(
+                    ICONE_POR_CATEGORIA.get(e.categoria, ICONE_PADRAO), TRACADOS[ICONE_PADRAO]
+                ),
                 "imagem": e.imagem_exibicao,
                 "aproximado": bool(e.local_ref and e.local_ref.coordenada_aproximada),
             },
