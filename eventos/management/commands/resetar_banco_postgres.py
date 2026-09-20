@@ -26,28 +26,35 @@ class Command(BaseCommand):
             )
 
         with connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"
-            )
-            antes = [linha[0] for linha in cursor.fetchall()]
-            self.stdout.write(f"Tabelas antes do reset: {antes}")
+            cursor.execute("SHOW search_path;")
+            self.stdout.write(f"search_path: {cursor.fetchone()[0]}")
 
-            cursor.execute("DROP SCHEMA public CASCADE;")
+            cursor.execute(
+                "SELECT schemaname, tablename FROM pg_tables "
+                "WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+            )
+            antes = cursor.fetchall()
+            self.stdout.write(f"Tabelas em qualquer schema antes do reset: {list(antes)}")
+
+            schemas_para_limpar = {linha[0] for linha in antes} | {"public"}
+            for schema in schemas_para_limpar:
+                cursor.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE;')
             cursor.execute("CREATE SCHEMA public;")
             cursor.execute("GRANT ALL ON SCHEMA public TO CURRENT_USER;")
             cursor.execute("GRANT ALL ON SCHEMA public TO public;")
 
             cursor.execute(
-                "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"
+                "SELECT schemaname, tablename FROM pg_tables "
+                "WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
             )
-            depois = [linha[0] for linha in cursor.fetchall()]
+            depois = cursor.fetchall()
 
         connection.commit()
 
         if depois:
             raise CommandError(
-                f"O esquema ainda tem tabelas depois do reset: {depois}. "
-                "Verifique permissões do usuário do banco (precisa ser dono do schema)."
+                f"Ainda restou tabela depois do reset: {list(depois)}. "
+                "Verifique permissões do usuário do banco (precisa ser dono dos schemas)."
             )
 
-        self.stdout.write(self.style.SUCCESS("Esquema do Postgres limpo e confirmado vazio."))
+        self.stdout.write(self.style.SUCCESS("Todos os schemas limpos e confirmados vazios."))
