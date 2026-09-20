@@ -8,15 +8,17 @@ from django.shortcuts import render
 
 logger = logging.getLogger("eventos.seguranca")
 
-CABECALHOS_DE_PROXY = ("HTTP_X_FORWARDED_FOR", "HTTP_X_REAL_IP")
-
-
 def ip_do_pedido(request):
+    # Só há um proxy confiável na frente (o edge do Render) e ele ANEXA o IP
+    # de quem bateu nele ao final de X-Forwarded-For, sem apagar o que já
+    # estava lá. Por isso o valor confiável é sempre o ÚLTIMO da lista — o
+    # primeiro é escrito pelo próprio cliente e totalmente falsificável
+    # (bastaria mandar "X-Forwarded-For: 1.2.3.4" pra "virar" esse IP).
     if getattr(settings, "SECURE_PROXY_SSL_HEADER", None):
-        for cabecalho in CABECALHOS_DE_PROXY:
-            valor = request.META.get(cabecalho, "")
-            if valor:
-                return valor.split(",")[0].strip()
+        bruto = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        partes = [parte.strip() for parte in bruto.split(",") if parte.strip()]
+        if partes:
+            return partes[-1]
     return request.META.get("REMOTE_ADDR", "0.0.0.0")
 
 

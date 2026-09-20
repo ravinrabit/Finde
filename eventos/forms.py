@@ -9,10 +9,30 @@ from django.utils import timezone
 
 from .constants import ACESSOS, ORDENACOES, PERIODOS, PRECOS, RAIOS, Categoria, PlanoDestaque, Regiao
 from .models import Evento, Local, Produtor, SolicitacaoDestaque
+from .services import captcha
 from .services.lgpd import VERSAO_PRIVACIDADE, VERSAO_TERMOS
 
 TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024
-FORMATOS_IMAGEM = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+EXTENSAO_POR_FORMATO_PIL = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp", "GIF": "gif"}
+
+
+class HCaptchaMixin:
+    """Recusa o formulário se o widget hCaptcha não confirmar 'não sou robô'.
+
+    O token vem num campo escondido (h-captcha-response) que o script do
+    hCaptcha preenche sozinho — não é um forms.Field porque não faz sentido
+    validar isoladamente por campo, só faz sentido junto com o resto do
+    clean() do formulário.
+    """
+
+    def clean(self):
+        limpo = super().clean()
+        token = self.data.get("h-captcha-response", "")
+        if not captcha.verificar(token):
+            raise forms.ValidationError(
+                "Não conseguimos confirmar que você não é um robô. Tente de novo."
+            )
+        return limpo
 
 
 class AcessibilidadeMixin:
@@ -64,7 +84,7 @@ class LoginForm(AuthenticationForm):
         return self.cleaned_data["username"].lower().strip()
 
 
-class CadastroForm(AcessibilidadeMixin, forms.Form):
+class CadastroForm(AcessibilidadeMixin, HCaptchaMixin, forms.Form):
     full_name = forms.CharField(
         label="Nome completo",
         max_length=150,
@@ -242,8 +262,32 @@ def validar_imagem(imagem):
         return imagem
     if imagem.size > TAMANHO_MAXIMO_IMAGEM:
         raise forms.ValidationError("A imagem precisa ter no máximo 5 MB.")
-    if imagem.content_type not in FORMATOS_IMAGEM:
+
+    # O Content-Type do upload é escrito pelo próprio navegador do remetente
+    # — não prova nada sobre o conteúdo real do arquivo. Em vez de confiar
+    # nele, abrimos os bytes de verdade com o Pillow: só um arquivo que a
+    # biblioteca de imagem consegue decodificar passa daqui, e o nome final
+    # é gerado a partir do formato detectado, nunca do nome/extensão que
+    # vieram no upload.
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        imagem.seek(0)
+        with Image.open(imagem) as verificacao:
+            verificacao.verify()
+        imagem.seek(0)
+        with Image.open(imagem) as identificada:
+            formato = identificada.format
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise forms.ValidationError("Envie uma imagem JPG, PNG, WEBP ou GIF válida.")
+    finally:
+        imagem.seek(0)
+
+    extensao = EXTENSAO_POR_FORMATO_PIL.get(formato)
+    if not extensao:
         raise forms.ValidationError("Envie uma imagem JPG, PNG, WEBP ou GIF.")
+
+    imagem.name = f"upload.{extensao}"
     return imagem
 
 
@@ -369,6 +413,15 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
             self.add_error("preco", "Informe o preço ou marque o evento como gratuito.")
         self.acessibilizar()
         return dados
+
+
+class EventoPublicoForm(HCaptchaMixin, EventoForm):
+    """EventoForm com hCaptcha, para quem cria evento pelo site (fora do painel).
+
+    Fica separado de EventoForm porque EventoPainelForm herda de EventoForm —
+    se o captcha estivesse lá, a equipe também precisaria resolver captcha
+    pra aprovar evento pelo painel, sem nem ter o widget na tela deles.
+    """
 
 
 # =========================
