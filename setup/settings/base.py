@@ -284,18 +284,33 @@ IA_TIMEOUT = config("IA_TIMEOUT", default=20, cast=int)
 # SEGURANÇA
 # =========================
 
+_HCAPTCHA_ORIGENS = ["https://hcaptcha.com", "https://*.hcaptcha.com"]
+
 SECURE_CSP = {
     "default-src": [CSP.SELF],
-    "script-src": [CSP.SELF, CSP.NONCE, "https://unpkg.com"],
-    "style-src": [CSP.SELF, CSP.NONCE, "https://unpkg.com", "https://fonts.googleapis.com"],
+    "script-src": [CSP.SELF, CSP.NONCE, "https://unpkg.com", *_HCAPTCHA_ORIGENS],
+    "style-src": [CSP.SELF, CSP.NONCE, "https://unpkg.com", "https://fonts.googleapis.com", *_HCAPTCHA_ORIGENS],
     "font-src": [CSP.SELF, "https://fonts.gstatic.com"],
     "img-src": [CSP.SELF, "data:", "blob:", "https:"],
-    "connect-src": [CSP.SELF],
+    "connect-src": [CSP.SELF, *_HCAPTCHA_ORIGENS],
+    "frame-src": [*_HCAPTCHA_ORIGENS],
     "form-action": [CSP.SELF],
     "base-uri": [CSP.SELF],
     "object-src": [CSP.NONE],
     "frame-ancestors": [CSP.NONE],
 }
+
+
+# =========================
+# CAPTCHA (hCaptcha)
+# =========================
+# Sem configurar nada, usa as chaves de teste oficiais do hCaptcha: o widget
+# aparece mas sempre passa. Troque pelas chaves reais (hcaptcha.com) no .env
+# de produção.
+
+HCAPTCHA_ATIVO = config("HCAPTCHA_ATIVO", default=True, cast=bool)
+HCAPTCHA_SITE_KEY = config("HCAPTCHA_SITE_KEY", default="10000000-ffff-ffff-ffff-000000000001")
+HCAPTCHA_SECRET_KEY = config("HCAPTCHA_SECRET_KEY", default="0x0000000000000000000000000000000000000000")
 
 X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True

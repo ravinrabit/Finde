@@ -35,6 +35,7 @@ RATELIMIT_ATIVO = False
 # Nenhuma chamada de rede durante os testes.
 GEOCODING_ATIVO = False
 IA_ATIVO = False
+HCAPTCHA_ATIVO = False
 
 LOGGING = {
     "version": 1,

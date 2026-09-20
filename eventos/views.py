@@ -36,6 +36,7 @@ from .forms import (
     CadastroForm,
     ColarLinkForm,
     EventoForm,
+    EventoPublicoForm,
     ExclusaoDeContaForm,
     FiltroEventosForm,
     ProdutorForm,
@@ -772,7 +773,7 @@ def meus_favoritos(request):
 @login_required
 @limitar("criar_evento", por_usuario=True)
 def criar_evento(request):
-    formulario = EventoForm(request.POST or None, request.FILES or None)
+    formulario = EventoPublicoForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and formulario.is_valid():
         evento, _ = catalogo.salvar_evento_do_produtor(
             formulario.save(commit=False), request.user
@@ -822,7 +823,9 @@ def colar_link(request):
             }
             aviso = f"Preenchido a partir de {previa.get('origem', 'link')}. Confira antes de enviar."
 
-    formulario = EventoForm(initial={k: v for k, v in dados_iniciais.items() if v not in (None, "")})
+    formulario = EventoPublicoForm(
+        initial={k: v for k, v in dados_iniciais.items() if v not in (None, "")}
+    )
     return render(request, "eventos/editar-evento.html", {
         "form": formulario,
         "form_link": formulario_link,

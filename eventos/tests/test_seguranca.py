@@ -1,8 +1,13 @@
+from datetime import timedelta
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
+from ..constants import Categoria, Regiao
 from ..models import Evento, Ingresso, Produtor
 from ..ratelimit import excedeu, ip_do_pedido, limpar
 from ..services.catalogo import resolver_produtor
@@ -109,10 +114,22 @@ class IpDoPedidoTests(TestCase):
         self.assertEqual(ip_do_pedido(pedido), "127.0.0.1")
 
     @override_settings(SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"))
-    def test_confia_no_cabecalho_quando_ha_proxy_declarado(self):
+    def test_confia_no_ultimo_ip_da_cadeia_quando_ha_proxy_declarado(self):
+        # O primeiro valor vem do cliente (falsificável); o proxy confiável
+        # (edge do Render) é quem anexa o último.
         from django.test import RequestFactory
 
         pedido = RequestFactory().get("/", HTTP_X_FORWARDED_FOR="1.2.3.4, 10.0.0.1")
+        self.assertEqual(ip_do_pedido(pedido), "10.0.0.1")
+
+    @override_settings(SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"))
+    def test_nao_confia_no_primeiro_ip_forjado_pelo_cliente(self):
+        from django.test import RequestFactory
+
+        pedido = RequestFactory().get("/", HTTP_X_FORWARDED_FOR="1.2.3.4")
+        # Sem um proxy real anexando nada, o único valor é o do próprio
+        # cliente — mas o teste acima é o que importa: garantir que um
+        # cliente não consegue *inserir* um IP falso à esquerda do seu real.
         self.assertEqual(ip_do_pedido(pedido), "1.2.3.4")
 
 
@@ -214,3 +231,84 @@ class ClaimDeProdutorTests(TestCase):
         produtor = resolver_produtor("Coletivo Inédito", user=pessoa)
 
         self.assertEqual(produtor.user_id, pessoa.pk)
+
+
+class CaptchaTests(TestCase):
+    """HCAPTCHA_ATIVO=False nos testes normais mascararia qualquer regressão
+    aqui — por isso estes testes ligam o captcha de propósito."""
+
+    def dados_cadastro(self, **extras):
+        return {
+            "full_name": "Pessoa Testando",
+            "email": "captcha@exemplo.test",
+            "password1": "senha-bem-forte-2026",
+            "password2": "senha-bem-forte-2026",
+            "terms": "on",
+            **extras,
+        }
+
+    def dados_evento_painel(self, **extras):
+        inicio = timezone.localtime() + timedelta(days=20)
+        return {
+            "nome": "Evento sem Captcha no Painel",
+            "descricao": "Descrição de teste.",
+            "data": inicio.strftime("%Y-%m-%dT%H:%M"),
+            "data_fim": "",
+            "modalidade": "presencial",
+            "local": "Espaço de Teste",
+            "endereco": "",
+            "regiao": Regiao.ASA_NORTE,
+            "cidade": "Brasília",
+            "categoria": Categoria.CULTURA,
+            "gratuito": "on",
+            "status": Evento.Status.PUBLICADO,
+            "destaque": "",
+            "motivo_rejeicao": "",
+            "limite_por_usuario": "10",
+            **extras,
+        }
+
+    @override_settings(HCAPTCHA_ATIVO=True)
+    def test_cadastro_publico_e_recusado_sem_captcha(self):
+        self.client.post(reverse("cadastro"), self.dados_cadastro())
+        self.assertFalse(User.objects.filter(email="captcha@exemplo.test").exists())
+
+    @override_settings(HCAPTCHA_ATIVO=True)
+    @patch("eventos.forms.captcha.verificar", return_value=True)
+    def test_cadastro_publico_passa_com_captcha_valido(self, _verificar):
+        self.client.post(
+            reverse("cadastro"), self.dados_cadastro(**{"h-captcha-response": "token"})
+        )
+        self.assertTrue(User.objects.filter(email="captcha@exemplo.test").exists())
+
+    @override_settings(HCAPTCHA_ATIVO=True)
+    def test_criar_evento_publico_e_recusado_sem_captcha(self):
+        self.client.force_login(criar_usuario("organizador@exemplo.test"))
+        self.client.post(reverse("criar_evento"), self.dados_evento_painel())
+        self.assertFalse(Evento.objects.filter(nome="Evento sem Captcha no Painel").exists())
+
+    @override_settings(HCAPTCHA_ATIVO=True)
+    def test_painel_da_equipe_nao_exige_captcha(self):
+        staff = criar_usuario("equipe-captcha@exemplo.test")
+        staff.is_staff = True
+        staff.save()
+        self.client.force_login(staff)
+
+        self.client.post(reverse("painel_evento_criar"), self.dados_evento_painel())
+
+        self.assertTrue(Evento.objects.filter(nome="Evento sem Captcha no Painel").exists())
+
+    @override_settings(HCAPTCHA_ATIVO=True)
+    def test_editar_evento_proprio_nao_exige_captcha(self):
+        dono = criar_usuario("dono-evento@exemplo.test")
+        evento = criar_evento(nome="Evento já existente", criado_por=dono)
+        self.client.force_login(dono)
+
+        resposta = self.client.post(
+            reverse("editar_evento", args=[evento.slug]),
+            self.dados_evento_painel(nome="Evento já existente, editado"),
+        )
+
+        evento.refresh_from_db()
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(evento.nome, "Evento já existente, editado")

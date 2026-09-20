@@ -148,6 +148,12 @@
             </div>
         </section>
 
+        {% if not evento %}
+            {# Só na criação: editar_evento reusa este template com EventoForm puro, sem hCaptcha. #}
+            <div class="h-captcha" data-sitekey="{{ HCAPTCHA_SITE_KEY }}"></div>
+            <script src="https://hcaptcha.com/1/api.js" async defer></script>
+        {% endif %}
+
         <div class="form-acoes">
             <a class="btn btn-fantasma" href="{% url 'meus_eventos' %}">Cancelar</a>
             <button type="submit" class="btn btn-primario btn-g">{{ acao }}</button>

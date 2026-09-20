@@ -50,6 +50,9 @@
         </div>
         {% for erro in form.terms.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
 
+        <div class="h-captcha" data-sitekey="{{ HCAPTCHA_SITE_KEY }}"></div>
+        <script src="https://hcaptcha.com/1/api.js" async defer></script>
+
         <button type="submit" class="btn btn-primario btn-g btn-cheio">Criar conta</button>
     </form>
 
