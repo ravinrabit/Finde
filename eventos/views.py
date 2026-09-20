@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 from datetime import timedelta
+from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
@@ -17,6 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
 
 from .constants import (
@@ -57,10 +59,34 @@ MAX_PARA_ORDENAR_DISTANCIA = 500
 JANELA_VISUALIZACAO = 60 * 30
 
 
+def cache_para_anonimos(segundos):
+    """cache_page, mas só entra em ação pra quem não está logado.
+
+    Visitante anônimo vê sempre o mesmo tanto de favorito (nenhum) e o
+    mesmo menu — pode compartilhar a página cacheada com outro anônimo
+    sem vazar nada de ninguém. Quem está logado sempre renderiza na hora,
+    pra ver os próprios favoritos e o menu de conta certos.
+    """
+
+    def decorador(view):
+        view_cacheada = cache_page(segundos)(view)
+
+        @wraps(view)
+        def envelope(request, *args, **kwargs):
+            if not getattr(settings, "CACHE_PAGINA_ATIVO", True) or request.user.is_authenticated:
+                return view(request, *args, **kwargs)
+            return view_cacheada(request, *args, **kwargs)
+
+        return envelope
+
+    return decorador
+
+
 # =========================
 # DESCOBERTA
 # =========================
 
+@cache_para_anonimos(180)
 def home(request):
     visiveis = Evento.objects.visiveis().para_cards()
 
@@ -135,7 +161,17 @@ def regioes_com_contagem(apenas_destaque=True):
     return sorted(regioes, key=lambda r: -r["total"])
 
 
+@cache_para_anonimos(180)
 def lista_eventos(request, contexto_extra=None, base=None, formulario=None):
+    # As views de categoria/região/hoje/etc. chamam a versão sem cache
+    # diretamente (_lista_eventos), porque cada uma já tem seu próprio
+    # cache_para_anonimos — cachear aqui de novo seria cache duplicado
+    # competindo pela mesma chave (a chave é o caminho da requisição, que
+    # nessas chamadas internas continua sendo o da view de fora).
+    return _lista_eventos(request, contexto_extra, base, formulario)
+
+
+def _lista_eventos(request, contexto_extra=None, base=None, formulario=None):
     if excedeu("busca", request) and request.GET.get("q"):
         return resposta_429(request, "Muitas buscas seguidas. Espere um instante.")
 
@@ -258,13 +294,14 @@ def filtrar_por_periodo(eventos, periodo):
 
 # ---- páginas de faceta indexáveis (SEO) ----
 
+@cache_para_anonimos(180)
 def eventos_por_categoria(request, valor):
     if valor not in {c.value for c in Categoria}:
         raise Http404("Categoria não encontrada.")
     rotulo = dict(Categoria.choices)[valor]
     dados = request.GET.copy()
     dados["categoria"] = valor
-    return lista_eventos(
+    return _lista_eventos(
         request,
         formulario=FiltroEventosForm(dados),
         contexto_extra={
@@ -276,13 +313,14 @@ def eventos_por_categoria(request, valor):
     )
 
 
+@cache_para_anonimos(180)
 def eventos_por_regiao(request, valor):
     if valor not in {r.value for r in Regiao}:
         raise Http404("Região não encontrada.")
     rotulo = dict(Regiao.choices)[valor]
     dados = request.GET.copy()
     dados["regiao"] = valor
-    return lista_eventos(
+    return _lista_eventos(
         request,
         formulario=FiltroEventosForm(dados),
         contexto_extra={
@@ -296,10 +334,11 @@ def eventos_por_regiao(request, valor):
     )
 
 
+@cache_para_anonimos(180)
 def eventos_gratuitos(request):
     dados = request.GET.copy()
     dados["preco"] = "gratuito"
-    return lista_eventos(
+    return _lista_eventos(
         request,
         formulario=FiltroEventosForm(dados),
         contexto_extra={
@@ -314,10 +353,11 @@ def eventos_gratuitos(request):
     )
 
 
+@cache_para_anonimos(60)
 def eventos_hoje(request):
     dados = request.GET.copy()
     dados["periodo"] = "hoje"
-    return lista_eventos(
+    return _lista_eventos(
         request,
         formulario=FiltroEventosForm(dados),
         contexto_extra={
@@ -329,11 +369,12 @@ def eventos_hoje(request):
     )
 
 
+@cache_para_anonimos(60)
 def eventos_fim_de_semana(request):
     dados = request.GET.copy()
     dados["periodo"] = "fim-de-semana"
     inicio, fim = Evento.janela_fim_de_semana()
-    return lista_eventos(
+    return _lista_eventos(
         request,
         formulario=FiltroEventosForm(dados),
         contexto_extra={

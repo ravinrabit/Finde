@@ -1,13 +1,14 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from ..constants import Categoria, Regiao
 from ..models import Evento
-from .base import criar_evento
+from .base import criar_evento, criar_usuario
 
 
 class PaginacaoTests(TestCase):
@@ -230,3 +231,33 @@ class BuscaTests(TestCase):
 
     def test_termo_de_uma_letra_e_ignorado(self):
         self.assertEqual(len(self.nomes("a")), 3)
+
+
+@override_settings(CACHE_PAGINA_ATIVO=True)
+class CachePaginaTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_visitante_anonimo_recebe_a_pagina_cacheada(self):
+        criar_evento(nome="Evento Cacheado Um")
+        primeira = self.client.get(reverse("lista_eventos"))
+        self.assertIn(b"Evento Cacheado Um", primeira.content)
+
+        criar_evento(nome="Evento Cacheado Dois")
+        segunda = self.client.get(reverse("lista_eventos"))
+        # ainda serve a versão em cache, sem o evento criado depois
+        self.assertNotIn(b"Evento Cacheado Dois", segunda.content)
+
+    def test_usuario_logado_nunca_ve_versao_cacheada(self):
+        self.client.force_login(criar_usuario("logado-cache@exemplo.test"))
+
+        criar_evento(nome="Evento Logado Um")
+        primeira = self.client.get(reverse("lista_eventos"))
+        self.assertIn(b"Evento Logado Um", primeira.content)
+
+        criar_evento(nome="Evento Logado Dois")
+        segunda = self.client.get(reverse("lista_eventos"))
+        self.assertIn(b"Evento Logado Dois", segunda.content)

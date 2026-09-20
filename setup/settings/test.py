@@ -29,8 +29,10 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
-# Cada teste que precisa de limite liga o seu explicitamente.
+# Cada teste que precisa de limite (ou de cache de página) liga o seu explicitamente —
+# senão a resposta cacheada de um teste vaza pro próximo e response.context vira None.
 RATELIMIT_ATIVO = False
+CACHE_PAGINA_ATIVO = False
 
 # Nenhuma chamada de rede durante os testes.
 GEOCODING_ATIVO = False

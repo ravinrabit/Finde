@@ -164,6 +164,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # (limite de tentativas, janela em segundos). Ver eventos/ratelimit.py.
 
 RATELIMIT_ATIVO = config("RATELIMIT_ATIVO", default=True, cast=bool)
+CACHE_PAGINA_ATIVO = config("CACHE_PAGINA_ATIVO", default=True, cast=bool)
 RATELIMITS = {
     "login": (10, 15 * 60),
     "cadastro": (5, 60 * 60),
