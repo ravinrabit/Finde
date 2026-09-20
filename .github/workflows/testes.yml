@@ -1,0 +1,32 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_ENV: test
+      SECRET_KEY: chave-de-ci-que-nao-serve-pra-nada-em-producao-so-preenche-o-requisito
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar a suíte de testes
+        run: python manage.py test
+
+      - name: Checagem de configuração de produção
+        env:
+          DJANGO_ENV: production
+        run: python manage.py check --deploy
