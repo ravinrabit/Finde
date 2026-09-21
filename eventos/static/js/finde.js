@@ -5,8 +5,12 @@
     const $$ = (seletor, raiz) => Array.from((raiz || document).querySelectorAll(seletor));
 
     function csrf() {
-        const campo = $('input[name="csrfmiddlewaretoken"]');
-        return campo ? campo.value : "";
+        // Lê do cookie, não do input embutido no HTML: em páginas servidas
+        // do cache de visitante anônimo (home, /eventos/, etc.) o input
+        // carrega o token de quem gerou a página cacheada, não o do
+        // visitante atual — só o cookie (emitido por requisição) é confiável.
+        const combinacao = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+        return combinacao ? decodeURIComponent(combinacao[1]) : "";
     }
 
 

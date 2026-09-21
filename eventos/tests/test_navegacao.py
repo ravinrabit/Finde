@@ -1,8 +1,9 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -261,3 +262,17 @@ class CachePaginaTests(TestCase):
         criar_evento(nome="Evento Logado Dois")
         segunda = self.client.get(reverse("lista_eventos"))
         self.assertIn(b"Evento Logado Dois", segunda.content)
+
+    def test_visitante_que_so_ve_pagina_cacheada_ganha_cookie_csrf_proprio(self):
+        # O primeiro visitante popula o cache; a view (e o {% csrf_token %} do
+        # formulário do assistente) roda de verdade só pra ele. Um segundo
+        # visitante, que nunca teve o cookie CSRF antes, precisa sair da
+        # página cacheada com o próprio cookie — senão qualquer POST dele
+        # (como a pergunta ao assistente) cai em 403 CSRF.
+        cliente_um = Client(enforce_csrf_checks=True)
+        cliente_um.get(reverse("home"))
+
+        cliente_dois = Client(enforce_csrf_checks=True)
+        resposta = cliente_dois.get(reverse("home"))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn(settings.CSRF_COOKIE_NAME, cliente_dois.cookies)

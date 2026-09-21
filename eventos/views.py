@@ -14,6 +14,7 @@ from django.core.paginator import Paginator
 from django.db import connection
 from django.db.models import Count, F, Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -76,6 +77,14 @@ def cache_para_anonimos(segundos):
         def envelope(request, *args, **kwargs):
             if not getattr(settings, "CACHE_PAGINA_ATIVO", True) or request.user.is_authenticated:
                 return view(request, *args, **kwargs)
+            # Numa resposta servida do cache a view (e o {% csrf_token %} do
+            # formulário do assistente) nunca roda, então o middleware de CSRF
+            # não teria motivo pra emitir cookie pro visitante atual — ele
+            # receberia o HTML cacheado com o token de quem gerou o cache, sem
+            # cookie nenhum, e toda requisição do assistente cairia em 403.
+            # Chamar get_token() aqui força esse cookie a sair sempre, mesmo
+            # em cache hit.
+            get_token(request)
             return view_cacheada(request, *args, **kwargs)
 
         return envelope
