@@ -84,24 +84,9 @@ TEMPLATES = [
 _DATABASE_URL = config("DATABASE_URL", default="")
 
 if _DATABASE_URL:
-    # Provedores como o Render costumam oferecer uma URL única pronta (às
-    # vezes até "linkada" direto no painel, sem o valor passar pela nossa
-    # mão) em vez de host/usuário/senha separados.
-    import urllib.parse
+    from .database_url import config_de_database_url
 
-    _partes = urllib.parse.urlsplit(_DATABASE_URL)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": _partes.path.lstrip("/"),
-            "USER": _partes.username,
-            "PASSWORD": _partes.password,
-            "HOST": _partes.hostname,
-            "PORT": _partes.port or 5432,
-            "CONN_MAX_AGE": 600,
-            "CONN_HEALTH_CHECKS": True,
-        }
-    }
+    DATABASES = {"default": config_de_database_url(_DATABASE_URL)}
 elif config("DB_ENGINE", default="sqlite") == "postgres":
     DATABASES = {
         "default": {

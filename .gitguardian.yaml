@@ -1,0 +1,8 @@
+version: 2
+secret:
+  ignored-paths:
+    # Testes de setup/settings/database_url.py: comparam config["PASSWORD"]
+    # (chave do dicionário DATABASES do Django) com valores sintéticos de
+    # teste. O detector genérico do GitGuardian reage a qualquer string
+    # perto dessa chave, mesmo sem nenhuma credencial real envolvida.
+    - "eventos/tests/test_settings_database_url.py"
