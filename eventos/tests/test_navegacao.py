@@ -1,8 +1,11 @@
+import shutil
+import tempfile
 from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -276,3 +279,29 @@ class CachePaginaTests(TestCase):
         resposta = cliente_dois.get(reverse("home"))
         self.assertEqual(resposta.status_code, 200)
         self.assertIn(settings.CSRF_COOKIE_NAME, cliente_dois.cookies)
+
+
+class ServiceWorkerTests(TestCase):
+    # `{% static '' %}` funciona em dev (StaticFilesStorage só concatena
+    # STATIC_URL), mas quebra com o storage com manifesto que a produção usa
+    # (whitenoise.storage.CompressedManifestStaticFilesStorage): uma entrada
+    # vazia nunca existe no manifesto, e o lookup levanta ValueError. Simula
+    # o storage de produção pra pegar essa classe de erro.
+    def test_sw_js_renderiza_com_storage_de_manifesto(self):
+        raiz_estatica = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, raiz_estatica, ignore_errors=True)
+
+        with override_settings(
+            STATIC_ROOT=raiz_estatica,
+            STORAGES={
+                **settings.STORAGES,
+                "staticfiles": {
+                    "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+                },
+            },
+        ):
+            call_command("collectstatic", interactive=False, verbosity=0)
+            resposta = self.client.get(reverse("service_worker"))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn(b'"/static/"', resposta.content)

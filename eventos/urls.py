@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 from django.views.generic import TemplateView
 
@@ -109,7 +110,11 @@ urlpatterns = [
         # Precisa ficar na raiz do site (não em /static/) para o escopo do
         # service worker cobrir todas as páginas, não só os arquivos estáticos.
         "sw.js",
-        TemplateView.as_view(template_name="sw.js", content_type="application/javascript"),
+        TemplateView.as_view(
+            template_name="sw.js",
+            content_type="application/javascript",
+            extra_context={"static_url": settings.STATIC_URL},
+        ),
         name="service_worker",
     ),
 ]

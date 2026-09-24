@@ -3,7 +3,7 @@ const VERSAO = "finde-v1";
 const CACHE_ESTATICO = `${VERSAO}-estatico`;
 const CACHE_RUNTIME = `${VERSAO}-runtime`;
 const URL_OFFLINE = "{% url 'pagina_offline' %}";
-const PREFIXO_ESTATICO = "{% static '' %}";
+const PREFIXO_ESTATICO = "{{ static_url }}";
 
 const APP_SHELL = [
     "{% static 'css/finde.css' %}",
