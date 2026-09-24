@@ -250,10 +250,23 @@ class CachePaginaTests(TestCase):
         primeira = self.client.get(reverse("lista_eventos"))
         self.assertIn(b"Evento Cacheado Um", primeira.content)
 
+        # sem nenhuma mudança no catálogo, a segunda requisição é servida do
+        # cache — nem toca o banco.
+        with self.assertNumQueries(0):
+            segunda = self.client.get(reverse("lista_eventos"))
+        self.assertEqual(segunda.content, primeira.content)
+
+    def test_criar_evento_invalida_o_cache_na_hora(self):
+        criar_evento(nome="Evento Cacheado Um")
+        primeira = self.client.get(reverse("lista_eventos"))
+        self.assertIn(b"Evento Cacheado Um", primeira.content)
+
         criar_evento(nome="Evento Cacheado Dois")
         segunda = self.client.get(reverse("lista_eventos"))
-        # ainda serve a versão em cache, sem o evento criado depois
-        self.assertNotIn(b"Evento Cacheado Dois", segunda.content)
+        # o sinal em signals.py limpa o cache de páginas ao salvar um evento,
+        # então o visitante anônimo vê o evento novo na mesma hora, sem
+        # esperar os 180s de TTL.
+        self.assertIn(b"Evento Cacheado Dois", segunda.content)
 
     def test_usuario_logado_nunca_ve_versao_cacheada(self):
         self.client.force_login(criar_usuario("logado-cache@exemplo.test"))
