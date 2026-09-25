@@ -71,7 +71,7 @@ def cache_para_anonimos(segundos):
     """
 
     def decorador(view):
-        view_cacheada = cache_page(segundos)(view)
+        view_cacheada = cache_page(segundos, cache="paginas")(view)
 
         @wraps(view)
         def envelope(request, *args, **kwargs):

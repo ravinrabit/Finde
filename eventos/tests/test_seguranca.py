@@ -104,6 +104,27 @@ class RateLimitTests(TestCase):
         limpar("login", pedido)
         self.assertFalse(excedeu("login", pedido))
 
+    def test_salvar_ou_apagar_evento_nao_reseta_limite_de_outra_acao(self):
+        # eventos/signals.py limpa o cache de página (alias "paginas") a
+        # cada evento salvo/apagado. Isso não pode zerar contadores do
+        # rate limiting, que fica no alias "default" — senão bastaria criar
+        # ou apagar um evento pra burlar o limite de tentativas de login.
+        from django.test import RequestFactory
+
+        pedido = RequestFactory().post("/")
+        pedido.user = type("Anonimo", (), {"is_authenticated": False})()
+
+        for _ in range(3):
+            excedeu("login", pedido)
+        self.assertTrue(excedeu("login", pedido))
+
+        evento = criar_evento(nome="Evento qualquer")
+        evento.nome = "Evento qualquer editado"
+        evento.save()
+        evento.delete()
+
+        self.assertTrue(excedeu("login", pedido))
+
 
 @override_settings(RATELIMIT_ATIVO=False)
 class IpDoPedidoTests(TestCase):

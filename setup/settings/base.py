@@ -118,27 +118,56 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 _CACHE_BACKEND = config("CACHE_BACKEND", default="locmem")
 
+# O alias "paginas" existe só pra isolar o cache de página (limpo inteiro a
+# cada evento salvo/apagado, ver eventos/signals.py) do alias "default", que
+# o rate limiting usa (eventos/ratelimit.py). Sem essa separação, limpar o
+# cache de página também zera os contadores de tentativa de login,
+# recuperação de senha etc. — qualquer pessoa com uma conta poderia burlar o
+# limite só criando/editando/apagando um evento.
+#
+# Em Redis, cache.clear() dá FLUSHDB na base inteira (não respeita prefixo de
+# chave), então o isolamento só é real se "paginas" apontar pra uma base
+# lógica diferente da de "default". Por padrão deriva de REDIS_URL trocando
+# só o índice final (".../1" -> ".../2"), pra funcionar sem configuração
+# extra; REDIS_URL_PAGINAS permite apontar pra outro lugar (ou outro Redis)
+# quando o provedor não suportar múltiplas bases lógicas.
 if _CACHE_BACKEND == "redis":
+    _redis_url = config("REDIS_URL", default="redis://127.0.0.1:6379/1")
+    _origem, _, _cauda = _redis_url.rpartition("/")
+    _proxima_base = f"{_origem}/{int(_cauda) + 1}" if _cauda.isdigit() else f"{_redis_url.rstrip('/')}/2"
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": config("REDIS_URL", default="redis://127.0.0.1:6379/1"),
-        }
+            "LOCATION": _redis_url,
+        },
+        "paginas": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": config("REDIS_URL_PAGINAS", default=_proxima_base),
+        },
     }
 elif _CACHE_BACKEND == "db":
-    # Requer: python manage.py createcachetable
+    # Requer: python manage.py createcachetable — sem argumento, cria a
+    # tabela de cada alias declarado em CACHES.
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.db.DatabaseCache",
             "LOCATION": "finde_cache",
-        }
+        },
+        "paginas": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "finde_cache_paginas",
+        },
     }
 else:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "finde",
-        }
+        },
+        "paginas": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "finde-paginas",
+        },
     }
 
 
