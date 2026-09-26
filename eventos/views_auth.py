@@ -15,10 +15,7 @@ CHAVE_SEGREDO_PENDENTE = "2fa_segredo_pendente"
 
 
 class LoginComDoisFatoresView(LoginView):
-    """Como o LoginView do Django, mas segura quem é staff antes do login
-    "pegar" de verdade: só desvia pro 2FA, não estabelece sessão nenhuma
-    até o código de 6 dígitos ser confirmado.
-    """
+
 
     template_name = "conta/login.html"
     authentication_form = LoginForm

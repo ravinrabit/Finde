@@ -29,10 +29,7 @@ SITEMAPS = {
     "produtores": ProdutorSitemap,
 }
 
-# Login e recuperação de senha são os alvos clássicos de força bruta. O limite
-# é aplicado aqui, envolvendo a view do Django, para não precisar reimplementar
-# nada de autenticação. Quem é staff passa por 2FA dentro do próprio
-# LoginComDoisFatoresView antes de a sessão logada existir de verdade.
+
 login_view = limitar("login")(LoginComDoisFatoresView.as_view())
 
 reset_view = limitar("senha_reset")(
@@ -85,9 +82,7 @@ contas = [
 ]
 
 urlpatterns = [
-    # O caminho do admin é configurável (ADMIN_URL). Tirar o /admin/ do lugar
-    # óbvio não substitui autenticação, mas elimina o ruído das varreduras
-    # automatizadas que batem em /admin/ o dia inteiro.
+    
     path(f"{settings.ADMIN_URL}/", admin.site.urls),
     path("conta/", include(contas)),
     path(

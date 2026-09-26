@@ -62,13 +62,7 @@ JANELA_VISUALIZACAO = 60 * 30
 
 
 def cache_para_anonimos(segundos):
-    """cache_page, mas só entra em ação pra quem não está logado.
 
-    Visitante anônimo vê sempre o mesmo tanto de favorito (nenhum) e o
-    mesmo menu — pode compartilhar a página cacheada com outro anônimo
-    sem vazar nada de ninguém. Quem está logado sempre renderiza na hora,
-    pra ver os próprios favoritos e o menu de conta certos.
-    """
 
     def decorador(view):
         view_cacheada = cache_page(segundos, cache="paginas")(view)
@@ -77,13 +71,7 @@ def cache_para_anonimos(segundos):
         def envelope(request, *args, **kwargs):
             if not getattr(settings, "CACHE_PAGINA_ATIVO", True) or request.user.is_authenticated:
                 return view(request, *args, **kwargs)
-            # Numa resposta servida do cache a view (e o {% csrf_token %} do
-            # formulário do assistente) nunca roda, então o middleware de CSRF
-            # não teria motivo pra emitir cookie pro visitante atual — ele
-            # receberia o HTML cacheado com o token de quem gerou o cache, sem
-            # cookie nenhum, e toda requisição do assistente cairia em 403.
-            # Chamar get_token() aqui força esse cookie a sair sempre, mesmo
-            # em cache hit.
+
             get_token(request)
             return view_cacheada(request, *args, **kwargs)
 
@@ -173,11 +161,7 @@ def regioes_com_contagem(apenas_destaque=True):
 
 @cache_para_anonimos(180)
 def lista_eventos(request, contexto_extra=None, base=None, formulario=None):
-    # As views de categoria/região/hoje/etc. chamam a versão sem cache
-    # diretamente (_lista_eventos), porque cada uma já tem seu próprio
-    # cache_para_anonimos — cachear aqui de novo seria cache duplicado
-    # competindo pela mesma chave (a chave é o caminho da requisição, que
-    # nessas chamadas internas continua sendo o da view de fora).
+
     return _lista_eventos(request, contexto_extra, base, formulario)
 
 
@@ -458,7 +442,6 @@ def evento_detalhe(request, slug):
     if evento.status == Evento.Status.PUBLICADO:
         contar_visualizacao(request, evento)
 
-    # Sem esse guarda, um evento sem categoria e sem região "combinaria" com
     # todos os outros que também estivessem em branco.
     semelhanca = Q(pk__in=[])
     if evento.categoria:
@@ -715,8 +698,7 @@ def meus_ingressos(request):
         Ingresso.objects.filter(usuario=request.user)
         .select_related("evento", "evento__local_ref")
     )
-    # A separação passou a ser feita no banco: antes, todos os ingressos do
-    # usuário eram carregados na memória e ordenados em Python.
+
     futuro = Q(evento__data_fim__gte=agora) | Q(evento__data_fim__isnull=True, evento__data__gte=agora)
     proximos = base.exclude(status=Ingresso.Status.CANCELADO).filter(futuro).order_by("evento__data")
     passados = base.exclude(status=Ingresso.Status.CANCELADO).exclude(futuro).order_by("-evento__data")
@@ -893,7 +875,7 @@ def colar_link(request):
 @login_required
 def editar_evento(request, slug):
     evento = get_object_or_404(Evento, slug=slug, criado_por=request.user)
-    # Cópia do estado anterior para saber o que mudou.
+
     original = Evento.objects.get(pk=evento.pk)
     formulario = EventoForm(request.POST or None, request.FILES or None, instance=evento)
 
@@ -1049,7 +1031,7 @@ def csv_de_inscritos(evento, ingressos):
     resposta["Content-Disposition"] = (
         f'attachment; filename="inscritos-{slugify(evento.nome)[:40]}.csv"'
     )
-    resposta.write("\ufeff")  # BOM: o Excel em pt-BR precisa disso
+    resposta.write("\ufeff") 
     escritor = csv.writer(resposta, delimiter=";")
     escritor.writerow(["codigo", "nome", "email", "tipo", "status", "valor", "reservado_em"])
     for ingresso in ingressos:
@@ -1158,8 +1140,7 @@ def excluir_minha_conta(request):
 # =========================
 
 def pagina_offline(request):
-    # Precacheada pelo service worker (sw.js) para aparecer quando a rede
-    # cair no meio da navegação. Fora desse cenário é só mais uma página.
+
     return render(request, "eventos/offline.html")
 
 
@@ -1369,7 +1350,7 @@ def erro_404(request, exception=None):
 
 
 def erro_500(request):
-    # Sem contexto de banco: um 500 costuma ser justamente o banco caindo.
+
     from django.template import loader
 
     return HttpResponse(loader.get_template("500.html").render({}), status=500)

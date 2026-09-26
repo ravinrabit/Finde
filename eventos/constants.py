@@ -95,7 +95,6 @@ class Regiao(models.TextChoices):
     ONLINE = "online", "Online"
 
 
-# Regiões destacadas na home. As demais continuam disponíveis nos filtros.
 REGIOES_EM_DESTAQUE = [
     Regiao.PLANO_PILOTO,
     Regiao.ASA_NORTE,
@@ -188,8 +187,6 @@ def normalizar(texto):
     return " ".join(sem_acento.lower().split())
 
 
-# Texto editorial por categoria. Alimenta /eventos/categoria/<slug>/, que sem
-# conteúdo próprio viraria 24 páginas duplicadas aos olhos do Google.
 DESCRICAO_POR_CATEGORIA = {
     Categoria.SHOWS: "Shows e apresentações musicais no Distrito Federal, do Mané Garrincha aos palcos de bairro.",
     Categoria.FESTAS: "Festas, baladas e encontros noturnos em Brasília e nas cidades do DF.",
@@ -231,8 +228,6 @@ DESCRICAO_POR_REGIAO = {
     Regiao.GUARA: "Feira do Guará, teatro e uma das agendas mais constantes fora do Plano.",
 }
 
-# Centro aproximado de cada RA. Fallback quando a geocodificação por endereço
-# falha, e centro do mapa nas páginas de faceta.
 CENTROIDE_POR_REGIAO = {
     Regiao.PLANO_PILOTO: (-15.7939, -47.8828),
     Regiao.ASA_SUL: (-15.8267, -47.9089),
@@ -264,8 +259,6 @@ CENTROIDE_POR_REGIAO = {
 
 CENTRO_DF = (-15.7939, -47.8828)
 
-# Estações do Metrô-DF, para calcular Local.metro_proximo.
-# Coordenadas aproximadas (4 casas ≈ 11 m). Conferir antes de usar em produção.
 ESTACOES_METRO_DF = [
     ("Central", -15.7936, -47.8825),
     ("Galeria", -15.7975, -47.8878),

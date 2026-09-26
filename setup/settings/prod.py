@@ -1,6 +1,6 @@
 from decouple import config
 
-from .base import *  # noqa: F401,F403
+from .base import *
 
 DEBUG = False
 
@@ -13,19 +13,19 @@ SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-if SENTRY_DSN:  # noqa: F405
+if SENTRY_DSN:
     try:
         import sentry_sdk
         from sentry_sdk.integrations.django import DjangoIntegration
 
         sentry_sdk.init(
-            dsn=SENTRY_DSN,  # noqa: F405
+            dsn=SENTRY_DSN,
             integrations=[DjangoIntegration()],
             traces_sample_rate=config("SENTRY_TRACES", default=0.05, cast=float),
             send_default_pii=False,
             environment="production",
         )
-    except ImportError:  # pragma: no cover
+    except ImportError:
         import logging
 
         logging.getLogger("eventos").warning(

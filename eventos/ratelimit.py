@@ -9,11 +9,7 @@ from django.shortcuts import render
 logger = logging.getLogger("eventos.seguranca")
 
 def ip_do_pedido(request):
-    # Só há um proxy confiável na frente (o edge do Render) e ele ANEXA o IP
-    # de quem bateu nele ao final de X-Forwarded-For, sem apagar o que já
-    # estava lá. Por isso o valor confiável é sempre o ÚLTIMO da lista — o
-    # primeiro é escrito pelo próprio cliente e totalmente falsificável
-    # (bastaria mandar "X-Forwarded-For: 1.2.3.4" pra "virar" esse IP).
+
     if getattr(settings, "SECURE_PROXY_SSL_HEADER", None):
         bruto = request.META.get("HTTP_X_FORWARDED_FOR", "")
         partes = [parte.strip() for parte in bruto.split(",") if parte.strip()]
@@ -34,13 +30,13 @@ def excedeu(nome, request, por_usuario=False):
     limite, janela = settings.RATELIMITS.get(nome, (60, 60))
     chave = _chave(nome, request, por_usuario)
 
-    # add() só grava se a chave não existir: é o que dá o TTL da janela.
+
     if cache.add(chave, 1, janela):
         return False
     try:
         atual = cache.incr(chave)
     except ValueError:
-        # A chave expirou entre o add e o incr.
+
         cache.set(chave, 1, janela)
         return False
     return atual > limite

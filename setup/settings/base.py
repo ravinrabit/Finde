@@ -68,9 +68,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "eventos.context_processors.identidade",
             ],
-            # Registrar a biblioteca como builtin evita ter que repetir
-            # {% load finde %} em cada template — e evita que um {% load %}
-            # esquecido derrube uma página só na hora de renderizar.
+           
             "builtins": ["eventos.templatetags.finde"],
         },
     },
@@ -118,19 +116,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 _CACHE_BACKEND = config("CACHE_BACKEND", default="locmem")
 
-# O alias "paginas" existe só pra isolar o cache de página (limpo inteiro a
-# cada evento salvo/apagado, ver eventos/signals.py) do alias "default", que
-# o rate limiting usa (eventos/ratelimit.py). Sem essa separação, limpar o
-# cache de página também zera os contadores de tentativa de login,
-# recuperação de senha etc. — qualquer pessoa com uma conta poderia burlar o
-# limite só criando/editando/apagando um evento.
-#
-# Em Redis, cache.clear() dá FLUSHDB na base inteira (não respeita prefixo de
-# chave), então o isolamento só é real se "paginas" apontar pra uma base
-# lógica diferente da de "default". Por padrão deriva de REDIS_URL trocando
-# só o índice final (".../1" -> ".../2"), pra funcionar sem configuração
-# extra; REDIS_URL_PAGINAS permite apontar pra outro lugar (ou outro Redis)
-# quando o provedor não suportar múltiplas bases lógicas.
+
 if _CACHE_BACKEND == "redis":
     _redis_url = config("REDIS_URL", default="redis://127.0.0.1:6379/1")
     _origem, _, _cauda = _redis_url.rpartition("/")
@@ -146,8 +132,7 @@ if _CACHE_BACKEND == "redis":
         },
     }
 elif _CACHE_BACKEND == "db":
-    # Requer: python manage.py createcachetable — sem argumento, cria a
-    # tabela de cada alias declarado em CACHES.
+
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.db.DatabaseCache",
@@ -196,7 +181,6 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # =========================
 # RATE LIMITING
 # =========================
-# (limite de tentativas, janela em segundos). Ver eventos/ratelimit.py.
 
 RATELIMIT_ATIVO = config("RATELIMIT_ATIVO", default=True, cast=bool)
 CACHE_PAGINA_ATIVO = config("CACHE_PAGINA_ATIVO", default=True, cast=bool)
@@ -262,7 +246,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 _MEDIA_BACKEND = config("MEDIA_BACKEND", default="local")
 
 if _MEDIA_BACKEND == "s3":
-    # Requer: pip install django-storages[s3]
+    
     AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
@@ -282,7 +266,6 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
-# Tamanhos gerados para cada capa enviada (largura em px).
 IMAGEM_LARGURAS = (400, 800, 1200)
 IMAGEM_QUALIDADE_WEBP = 82
 
@@ -307,9 +290,6 @@ INGESTAO_HTTP_TIMEOUT = 20
 # ASSISTENTE DE IA
 # =========================
 
-# Compatível com a API de chat da OpenAI. O padrão aponta para um Ollama
-# local (grátis, sem chave) — troque as três variáveis para usar outro
-# provedor, sem mudar código.
 IA_ATIVO = config("IA_ATIVO", default=True, cast=bool)
 IA_API_BASE = config("IA_API_BASE", default="http://localhost:11434/v1")
 IA_API_KEY = config("IA_API_KEY", default="")
@@ -341,9 +321,6 @@ SECURE_CSP = {
 # =========================
 # CAPTCHA (hCaptcha)
 # =========================
-# Sem configurar nada, usa as chaves de teste oficiais do hCaptcha: o widget
-# aparece mas sempre passa. Troque pelas chaves reais (hcaptcha.com) no .env
-# de produção.
 
 HCAPTCHA_ATIVO = config("HCAPTCHA_ATIVO", default=True, cast=bool)
 HCAPTCHA_SITE_KEY = config("HCAPTCHA_SITE_KEY", default="10000000-ffff-ffff-ffff-000000000001")

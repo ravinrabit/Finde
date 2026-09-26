@@ -25,8 +25,6 @@ from .constants import (
 
 RAIO_TERRA_KM = 6371.0088
 
-# Nomes que ocupam o campo "local" sem designar um lugar. Não viram Local:
-# um marcador chamado "A confirmar" no mapa é pior do que marcador nenhum.
 LOCAIS_SEM_ENDERECO = {
     "a confirmar", "a definir", "a ser definido", "local a confirmar",
     "local a definir", "online", "internet", "transmissao online", "remoto",
@@ -76,10 +74,7 @@ class LocalQuerySet(models.QuerySet):
 class Local(models.Model):
     nome = models.CharField("nome", max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    # Chave de deduplicação: "Cine Brasília" e "Cine Brasilia" colidem aqui.
-    # unique=True fecha a corrida entre o filter().first() e o create() em
-    # resolver_local: duas requisições simultâneas para o mesmo local novo
-    # não criam mais dois registros.
+
     nome_normalizado = models.CharField(max_length=200, editable=False, unique=True)
 
     endereco = models.CharField("endereço", max_length=300, blank=True)
@@ -178,9 +173,7 @@ class Produtor(models.Model):
     )
     nome = models.CharField("nome", max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    # unique=True fecha a corrida entre o filter().first() e o create() em
-    # resolver_produtor: dois produtores cadastrando o mesmo nome ao mesmo
-    # tempo não criam mais dois registros.
+
     nome_normalizado = models.CharField(max_length=200, editable=False, unique=True)
 
     bio = models.TextField("descrição", blank=True)
@@ -291,7 +284,7 @@ class Evento(models.Model):
         REJEITADO = "rejeitado", "Rejeitado"
         ARQUIVADO = "arquivado", "Arquivado"
 
-    # Campos cuja alteração devolve um evento publicado para a fila de revisão.
+
     CAMPOS_SENSIVEIS = (
         "nome", "data", "data_fim", "local", "endereco", "regiao", "cidade",
         "modalidade", "preco", "gratuito", "link_ingressos", "organizador",
@@ -308,8 +301,7 @@ class Evento(models.Model):
     modalidade = models.CharField(
         max_length=12, choices=Modalidade.choices, default=Modalidade.PRESENCIAL
     )
-    # Nome do local como texto. Continua sendo a fonte de exibição, e é mantido
-    # em sincronia com local_ref.nome no save().
+
     local = models.CharField("local", max_length=300)
     local_ref = models.ForeignKey(
         Local, null=True, blank=True, on_delete=models.SET_NULL, related_name="eventos",
@@ -377,9 +369,7 @@ class Evento(models.Model):
     publicado_em = models.DateTimeField(null=True, blank=True, editable=False)
     visualizacoes = models.PositiveIntegerField(default=0, editable=False)
 
-    # Texto único, minúsculo e sem acento, alimentado no save(). É o que a busca
-    # consulta — resolve "cinéma"/"cinema" e "Brasília"/"brasilia" em SQLite e
-    # em PostgreSQL, com uma coluna indexável em vez de cinco LIKE.
+
     busca_texto = models.TextField(editable=False, blank=True)
 
     criado_por = models.ForeignKey(
@@ -449,8 +439,6 @@ class Evento(models.Model):
             self.publicado_em = timezone.now()
             derivados.add("publicado_em")
 
-        # Recalculado sempre: uma coluna de busca desatualizada é pior do que
-        # não ter coluna de busca.
         self.busca_texto = self._montar_busca()
         derivados.add("busca_texto")
 
@@ -579,8 +567,7 @@ class Evento(models.Model):
 
     @property
     def organizador_nome(self):
-        # Prioriza o texto digitado no evento (pode ser uma coprodução ou
-        # marca diferente do perfil) sobre o nome do perfil de produtor.
+
         return self.organizador or (self.produtor.nome if self.produtor_id else "")
 
     @property
@@ -771,11 +758,7 @@ class AceiteDeTermos(models.Model):
 
 
 class DispositivoTOTP(models.Model):
-    """Segredo de autenticação em duas etapas de um usuário da equipe.
 
-    O segredo fica cifrado (services.cripto) — mesmo um vazamento do banco
-    sozinho não dá pra gerar os códigos de 6 dígitos sem a SECRET_KEY.
-    """
 
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dispositivo_totp"

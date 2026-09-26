@@ -17,13 +17,7 @@ EXTENSAO_POR_FORMATO_PIL = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp", "GIF": 
 
 
 class HCaptchaMixin:
-    """Recusa o formulário se o widget hCaptcha não confirmar 'não sou robô'.
 
-    O token vem num campo escondido (h-captcha-response) que o script do
-    hCaptcha preenche sozinho — não é um forms.Field porque não faz sentido
-    validar isoladamente por campo, só faz sentido junto com o resto do
-    clean() do formulário.
-    """
 
     def clean(self):
         limpo = super().clean()
@@ -57,9 +51,7 @@ class AcessibilidadeMixin:
 # =========================
 
 class LoginForm(AuthenticationForm):
-    # Aceita e-mail (o caso de todo mundo que se cadastrou pelo site) e também
-    # username simples, senão um superusuário criado por createsuperuser não
-    # consegue entrar pela página de login.
+
     username = forms.CharField(
         label="E-mail",
         max_length=150,
@@ -281,12 +273,7 @@ def validar_imagem(imagem):
     if imagem.size > TAMANHO_MAXIMO_IMAGEM:
         raise forms.ValidationError("A imagem precisa ter no máximo 5 MB.")
 
-    # O Content-Type do upload é escrito pelo próprio navegador do remetente
-    # — não prova nada sobre o conteúdo real do arquivo. Em vez de confiar
-    # nele, abrimos os bytes de verdade com o Pillow: só um arquivo que a
-    # biblioteca de imagem consegue decodificar passa daqui, e o nome final
-    # é gerado a partir do formato detectado, nunca do nome/extensão que
-    # vieram no upload.
+
     from PIL import Image, UnidentifiedImageError
 
     try:
@@ -387,9 +374,7 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
     def clean_data(self):
         data = self.cleaned_data["data"]
         e_novo = self.instance.pk is None
-        # O widget tem precisão de minuto; o valor no banco pode ter segundos.
-        # Sem truncar, reenviar a MESMA data seria lido como alteração, e o
-        # evento passado continuaria impossível de corrigir.
+
         mudou = not e_novo and Evento._comparavel(data) != Evento._comparavel(self.instance.data)
         if (e_novo or mudou) and data < timezone.now():
             raise forms.ValidationError("A data de início precisa ser no futuro.")
@@ -434,12 +419,7 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
 
 
 class EventoPublicoForm(HCaptchaMixin, EventoForm):
-    """EventoForm com hCaptcha, para quem cria evento pelo site (fora do painel).
-
-    Fica separado de EventoForm porque EventoPainelForm herda de EventoForm —
-    se o captcha estivesse lá, a equipe também precisaria resolver captcha
-    pra aprovar evento pelo painel, sem nem ter o widget na tela deles.
-    """
+    pass
 
 
 # =========================

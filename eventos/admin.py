@@ -198,9 +198,6 @@ class EventoAdmin(admin.ModelAdmin):
             return f"{confirmados} (sem limite)"
         return f"{confirmados}/{obj.capacidade}"
 
-    # -- ações de moderação ------------------------------------------------
-    # Usam laço em vez de queryset.update() de propósito: cada evento precisa
-    # de e-mail e de publicado_em. Os lotes de moderação são pequenos.
 
     @admin.action(description="Publicar no site (avisa o produtor)")
     def publicar(self, request, queryset):

@@ -279,8 +279,7 @@ def destaque_aprovar(request, pk):
     solicitacao = get_object_or_404(SolicitacaoDestaque, pk=pk, atendida=False)
     evento = solicitacao.evento
     agora = timezone.now()
-    # Renovar antes de vencer soma ao que já resta, em vez de descartar os
-    # dias pagos ainda ativos.
+
     base = evento.destaque_pago_ate if evento.destaque_pago_ate and evento.destaque_pago_ate > agora else agora
     evento.plano_destaque = solicitacao.plano
     evento.destaque_pago_ate = base + timezone.timedelta(days=DIAS_DESTAQUE_PADRAO)
