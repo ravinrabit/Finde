@@ -137,3 +137,13 @@ class BuscarFimAFimTests(SimpleTestCase):
             with patch.object(ingestao_http, "_ip_bloqueado", return_value=False):
                 with self.assertRaises(ingestao_http.FonteIndisponivel):
                     ingestao_http.buscar(servidor.url, checar_robots=False)
+
+    def test_redirect_para_esquema_nao_http_e_recusado(self):
+        # ftp:// não passa por _HandlerHTTPFixo/_HandlerHTTPSFixo (que
+        # validam o IP de destino), então sem checagem de esquema no
+        # redirect um servidor malicioso poderia usá-lo pra contornar por
+        # completo o bloqueio de IPs privados.
+        with _ServidorDeTeste(redirecionar_para="ftp://10.0.0.5/segredo") as origem:
+            with patch.object(ingestao_http, "_ip_bloqueado", return_value=False):
+                with self.assertRaises(ingestao_http.FonteIndisponivel):
+                    ingestao_http.buscar(origem.url, checar_robots=False)
