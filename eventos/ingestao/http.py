@@ -112,6 +112,20 @@ class _HandlerHTTPSFixo(urllib.request.HTTPSHandler):
         return self.do_open(fabrica, req, context=self._context)
 
 
+class _RedirecionamentoValidado(urllib.request.HTTPRedirectHandler):
+    """O urllib padrão permite redirect para ftp:// além de http(s)://, e
+    esse esquema não passa por _HandlerHTTPFixo/_HandlerHTTPSFixo — ou seja,
+    sem esta checagem, um redirect para ftp://<ip interno>/ contornaria por
+    completo o bloqueio de IPs privados.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        partes = urllib.parse.urlsplit(newurl)
+        if partes.scheme not in ESQUEMAS_PERMITIDOS:
+            raise FonteIndisponivel(f"Esquema não permitido em {newurl}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def _abrir(url, cabecalhos=None, timeout=None):
     pedido = urllib.request.Request(
         url,
@@ -126,8 +140,9 @@ def _abrir(url, cabecalhos=None, timeout=None):
     # Handlers próprios (não o HTTPHandler/HTTPSHandler padrão do urllib):
     # eles conectam direto no IP já validado por _enderecos_seguros, em vez
     # de deixar o socket resolver o host de novo — inclusive num redirect,
-    # que passa pelos mesmos handlers.
-    opener = urllib.request.build_opener(_HandlerHTTPFixo, _HandlerHTTPSFixo)
+    # que passa pelos mesmos handlers. _RedirecionamentoValidado barra
+    # redirect para outro esquema (ex.: ftp://), que não passaria por eles.
+    opener = urllib.request.build_opener(_HandlerHTTPFixo, _HandlerHTTPSFixo, _RedirecionamentoValidado)
     with opener.open(pedido, timeout=timeout or settings.INGESTAO_HTTP_TIMEOUT) as resposta:
         bruto = resposta.read(TAMANHO_MAXIMO + 1)
         if len(bruto) > TAMANHO_MAXIMO:
