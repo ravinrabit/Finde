@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from .constants import ACESSOS, ORDENACOES, PERIODOS, PRECOS, RAIOS, Categoria, PlanoDestaque, Regiao
-from .models import Evento, Local, Produtor, SolicitacaoDestaque
+from .models import Evento, Local, PerfilUsuario, Produtor, SolicitacaoDestaque
 from .services import captcha
 from .services.lgpd import VERSAO_PRIVACIDADE, VERSAO_TERMOS
 
@@ -217,6 +217,50 @@ class ExclusaoDeContaForm(AcessibilidadeMixin, forms.Form):
         if texto != "EXCLUIR":
             raise forms.ValidationError("Digite exatamente EXCLUIR para confirmar.")
         return texto
+
+    def clean(self):
+        dados = super().clean()
+        self.acessibilizar()
+        return dados
+
+
+class PerfilForm(AcessibilidadeMixin, forms.Form):
+    full_name = forms.CharField(
+        label="Nome completo",
+        max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "name", "placeholder": "Seu nome completo"}),
+        error_messages={"required": "Informe seu nome completo."},
+    )
+
+    def clean_full_name(self):
+        nome = " ".join(self.cleaned_data["full_name"].split())
+        if len(nome) < 3:
+            raise forms.ValidationError("Informe seu nome completo.")
+        return nome
+
+    def clean(self):
+        dados = super().clean()
+        self.acessibilizar()
+        return dados
+
+    def salvar(self, usuario):
+        nome = self.cleaned_data["full_name"]
+        primeiro, _, sobrenome = nome.partition(" ")
+        usuario.first_name = primeiro
+        usuario.last_name = sobrenome
+        usuario.save(update_fields=["first_name", "last_name"])
+
+
+class FotoPerfilForm(AcessibilidadeMixin, forms.ModelForm):
+    class Meta:
+        model = PerfilUsuario
+        fields = ["foto"]
+        widgets = {"foto": forms.ClearableFileInput(attrs={"accept": "image/*"})}
+        labels = {"foto": "Foto de perfil"}
+        help_texts = {"foto": "JPG, PNG, WEBP ou GIF, até 5 MB."}
+
+    def clean_foto(self):
+        return validar_imagem(self.cleaned_data.get("foto"))
 
     def clean(self):
         dados = super().clean()

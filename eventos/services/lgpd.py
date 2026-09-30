@@ -10,7 +10,9 @@ def _iso(momento):
 
 
 def exportar_dados(user):
-    from ..models import AceiteDeTermos, Evento, Favorito, Ingresso, Produtor
+    from ..models import AceiteDeTermos, Evento, Favorito, Ingresso, PerfilUsuario, Produtor
+
+    perfil = PerfilUsuario.objects.filter(usuario=user).first()
 
     dados = {
         "gerado_em": _iso(timezone.now()),
@@ -19,6 +21,7 @@ def exportar_dados(user):
             "nome": f"{user.first_name} {user.last_name}".strip(),
             "email": user.email,
             "usuario": user.username,
+            "foto": perfil.foto.url if perfil and perfil.foto else None,
             "criada_em": _iso(user.date_joined),
             "ultimo_acesso": _iso(user.last_login),
         },

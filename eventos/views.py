@@ -42,10 +42,12 @@ from .forms import (
     EventoPublicoForm,
     ExclusaoDeContaForm,
     FiltroEventosForm,
+    FotoPerfilForm,
+    PerfilForm,
     ProdutorForm,
     SolicitacaoDestaqueForm,
 )
-from .models import Evento, Favorito, Ingresso, Local, Produtor, SolicitacaoDestaque
+from .models import Evento, Favorito, Ingresso, Local, PerfilUsuario, Produtor, SolicitacaoDestaque
 from .ratelimit import excedeu, ip_do_pedido, limitar, resposta_429
 from .services import busca as servico_busca
 from .services import calendario, catalogo, lgpd, reservas
@@ -1101,6 +1103,28 @@ def cadastro(request):
             return redirect("home")
 
     return render(request, "eventos/cadastro.html", {"form": formulario})
+
+
+@login_required
+def perfil(request):
+    perfil_do_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
+
+    if request.method == "POST":
+        form_nome = PerfilForm(request.POST, initial={"full_name": request.user.get_full_name()})
+        form_foto = FotoPerfilForm(request.POST, request.FILES, instance=perfil_do_usuario)
+        if form_nome.is_valid() and form_foto.is_valid():
+            form_nome.salvar(request.user)
+            form_foto.save()
+            messages.success(request, "Perfil atualizado.")
+            return redirect("perfil")
+    else:
+        form_nome = PerfilForm(initial={"full_name": request.user.get_full_name()})
+        form_foto = FotoPerfilForm(instance=perfil_do_usuario)
+
+    return render(request, "eventos/perfil.html", {
+        "form_nome": form_nome,
+        "form_foto": form_foto,
+    })
 
 
 @login_required

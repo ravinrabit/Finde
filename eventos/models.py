@@ -165,6 +165,24 @@ class Local(models.Model):
 
 
 # =========================
+# PERFIL
+# =========================
+
+class PerfilUsuario(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="perfil"
+    )
+    foto = models.ImageField(upload_to="perfis/%Y/%m/", blank=True)
+
+    class Meta:
+        verbose_name = "perfil de usuário"
+        verbose_name_plural = "perfis de usuário"
+
+    def __str__(self):
+        return self.usuario.email
+
+
+# =========================
 # PRODUTOR
 # =========================
 

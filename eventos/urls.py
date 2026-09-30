@@ -76,6 +76,7 @@ urlpatterns = [
 
     # ---------------- conta e privacidade ----------------
     path("conta/criar/", views.cadastro, name="cadastro"),
+    path("conta/perfil/", views.perfil, name="perfil"),
     path("conta/privacidade/", views.minha_privacidade, name="minha_privacidade"),
     path("conta/privacidade/exportar/", views.exportar_meus_dados, name="exportar_meus_dados"),
     path("conta/privacidade/excluir/", views.excluir_minha_conta, name="excluir_minha_conta"),
