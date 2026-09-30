@@ -68,7 +68,10 @@ def responder(pergunta, historico=None):
         "stream": False,
     }).encode("utf-8")
 
-    cabecalhos = {"Content-Type": "application/json"}
+    cabecalhos = {
+        "Content-Type": "application/json",
+        "User-Agent": "Finde/1.0 (+https://finde-t4tj.onrender.com)",
+    }
     if settings.IA_API_KEY:
         cabecalhos["Authorization"] = f"Bearer {settings.IA_API_KEY}"
 
@@ -82,6 +85,10 @@ def responder(pergunta, historico=None):
     try:
         with urllib.request.urlopen(pedido, timeout=settings.IA_TIMEOUT) as resposta:
             dados = json.loads(resposta.read().decode("utf-8"))
+    except urllib.error.HTTPError as erro:
+        corpo = erro.read().decode("utf-8", errors="replace")[:500]
+        logger.warning("Assistente indisponível: %s | corpo: %s", erro, corpo)
+        raise AssistenteIndisponivel(str(erro)) from erro
     except (urllib.error.URLError, TimeoutError) as erro:
         logger.warning("Assistente indisponível: %s", erro)
         raise AssistenteIndisponivel(str(erro)) from erro
