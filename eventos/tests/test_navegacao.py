@@ -3,8 +3,9 @@ import tempfile
 from datetime import timedelta
 from decimal import Decimal
 
+from django.apps import apps
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -292,6 +293,16 @@ class CachePaginaTests(TestCase):
         resposta = cliente_dois.get(reverse("home"))
         self.assertEqual(resposta.status_code, 200)
         self.assertIn(settings.CSRF_COOKIE_NAME, cliente_dois.cookies)
+
+
+class LimpezaDeCacheNoStartupTests(TestCase):
+    # Sem isso, uma mudança de template só aparece pra visitante anônimo
+    # depois que o cache de páginas expirar sozinho (até 180s) - e com
+    # CACHE_BACKEND=redis/db isso nem depende do processo reiniciar.
+    def test_ready_limpa_o_cache_de_paginas(self):
+        caches["paginas"].set("chave-de-teste", "valor-velho")
+        apps.get_app_config("eventos").ready()
+        self.assertIsNone(caches["paginas"].get("chave-de-teste"))
 
 
 class ServiceWorkerTests(TestCase):
