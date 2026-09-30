@@ -1,0 +1,56 @@
+{% extends "eventos/base.html" %}
+
+{% block titulo %}Meu perfil — {{ SITE_NOME }}{% endblock %}
+
+{% block conteudo %}
+<div class="container container-estreito">
+    <div class="pagina-topo">
+        <h1>Meu perfil</h1>
+        <p class="pagina-apoio">Nome e foto aparecem onde você interage no site — nos seus ingressos e, se publicar eventos, como criador deles.</p>
+    </div>
+
+    <section class="cartao">
+        <form method="post" enctype="multipart/form-data" class="formulario" novalidate>
+            {% csrf_token %}
+            {% if form_nome.non_field_errors or form_foto.non_field_errors %}
+                <div class="aviso aviso-erro" role="alert">
+                    {{ form_nome.non_field_errors }}{{ form_foto.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for campo in form_nome %}
+                {% include "eventos/partials/campo.html" %}
+            {% endfor %}
+
+            <div class="campo-grupo {% if form_foto.foto.errors %}campo-invalido{% endif %}">
+                <span class="campo-rotulo">{{ form_foto.foto.label }}</span>
+                <label class="upload upload-redonda" for="{{ form_foto.foto.id_for_label }}" data-upload>
+                    <div class="upload-texto" data-upload-texto>
+                        {% icone "quadro" 32 %}
+                        <strong>Clique ou arraste uma foto</strong>
+                        <span class="upload-dica">Formato quadrado funciona melhor · JPG, PNG, WEBP ou GIF · até 5 MB</span>
+                    </div>
+                    <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da foto de perfil">
+                    {{ form_foto.foto }}
+                </label>
+                <p class="campo-ajuda">{{ form_foto.foto.help_text }}</p>
+                {% for erro in form_foto.foto.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+            </div>
+
+            <div class="formulario-acoes">
+                <button type="submit" class="btn btn-primario btn-g">Salvar perfil</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Senha e acesso</h2>
+        <p>
+            Para trocar sua senha, use a
+            <a href="{% url 'password_change' %}">página de troca de senha</a>.
+            Pra ver, baixar ou excluir seus dados, vá em
+            <a href="{% url 'minha_privacidade' %}">Meus dados</a>.
+        </p>
+    </section>
+</div>
+{% endblock %}

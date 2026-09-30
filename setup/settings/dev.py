@@ -1,11 +1,12 @@
 from decouple import config
 
-from .base import *
+from .base import *  # noqa: F401,F403
 
 DEBUG = config("DEBUG", default=True, cast=bool)
 
+# Sem manifesto: em dev o collectstatic não precisa ter rodado.
 STORAGES = {
-    **STORAGES,
+    **STORAGES,  # noqa: F405
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 

@@ -1,12 +1,23 @@
 import json
+from io import BytesIO
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from ..models import AceiteDeTermos, Evento, Favorito, Ingresso, Produtor
+from ..models import AceiteDeTermos, Evento, Favorito, Ingresso, PerfilUsuario, Produtor
 from ..services import lgpd
 from .base import criar_evento, criar_usuario
+
+
+def _imagem_valida(nome="foto.png"):
+    from PIL import Image
+
+    buffer = BytesIO()
+    Image.new("RGB", (10, 10), "blue").save(buffer, format="PNG")
+    buffer.seek(0)
+    return SimpleUploadedFile(nome, buffer.read(), content_type="image/png")
 
 
 class ConsentimentoTests(TestCase):
@@ -101,6 +112,11 @@ class ExclusaoTests(TestCase):
         produtor = Produtor.objects.get()
         self.assertIsNone(produtor.user_id)
 
+    def test_perfil_e_apagado_junto_com_a_conta(self):
+        PerfilUsuario.objects.create(usuario=self.pessoa)
+        lgpd.excluir_conta(self.pessoa)
+        self.assertEqual(PerfilUsuario.objects.count(), 0)
+
     def test_view_exige_senha_correta(self):
         resposta = self.client.post(
             reverse("excluir_minha_conta"), {"senha": "errada", "confirmacao": "EXCLUIR"}
@@ -140,3 +156,43 @@ class PaginasDePrivacidadeTests(TestCase):
         resposta = self.client.get(reverse("contato"))
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, "mailto:")
+
+
+class PerfilTests(TestCase):
+    def setUp(self):
+        self.pessoa = criar_usuario("perfil@exemplo.test")
+        self.client.force_login(self.pessoa)
+
+    def test_pagina_exige_login(self):
+        self.client.logout()
+        resposta = self.client.get(reverse("perfil"))
+        self.assertEqual(resposta.status_code, 302)
+
+    def test_pagina_responde_logado(self):
+        resposta = self.client.get(reverse("perfil"))
+        self.assertEqual(resposta.status_code, 200)
+
+    def test_atualiza_o_nome(self):
+        self.client.post(reverse("perfil"), {"full_name": "Maria Nova Silva"})
+        self.pessoa.refresh_from_db()
+        self.assertEqual(self.pessoa.first_name, "Maria")
+        self.assertEqual(self.pessoa.last_name, "Nova Silva")
+
+    def test_nome_curto_e_recusado(self):
+        resposta = self.client.post(reverse("perfil"), {"full_name": "Jo"})
+        self.assertEqual(resposta.status_code, 200)
+        self.pessoa.refresh_from_db()
+        self.assertEqual(self.pessoa.first_name, "")
+
+    def test_envia_foto_de_perfil(self):
+        self.client.post(
+            reverse("perfil"),
+            {"full_name": "Maria Silva", "foto": _imagem_valida()},
+        )
+        self.pessoa.refresh_from_db()
+        self.assertTrue(self.pessoa.perfil.foto)
+
+    def test_cria_o_perfil_na_primeira_visita(self):
+        self.assertFalse(PerfilUsuario.objects.filter(usuario=self.pessoa).exists())
+        self.client.get(reverse("perfil"))
+        self.assertTrue(PerfilUsuario.objects.filter(usuario=self.pessoa).exists())

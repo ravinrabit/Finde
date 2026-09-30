@@ -30,9 +30,9 @@
     <section class="cartao">
         <h2>Corrigir meus dados</h2>
         <p>
-            Nome, e-mail e senha ficam na sua conta. Para alterar a senha, use a
+            Nome e foto ficam no seu <a href="{% url 'perfil' %}">perfil</a>. Para alterar a senha, use a
             <a href="{% url 'password_change' %}">página de troca de senha</a>.
-            Para corrigir nome ou e-mail, escreva para
+            Para corrigir o e-mail, escreva para
             <a href="mailto:{{ EMAIL_CONTATO }}">{{ EMAIL_CONTATO }}</a>.
         </p>
     </section>

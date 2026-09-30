@@ -737,6 +737,36 @@
     }
 
 
+    /* =========================
+       MÁSCARA DE DATA (dd/mm/aaaa hh:mm)
+       ========================= */
+
+    function formatarMascaraData(bruto) {
+        const digitos = bruto.replace(/\D/g, "").slice(0, 12);
+        const partes = [
+            digitos.slice(0, 2),
+            digitos.slice(2, 4),
+            digitos.slice(4, 8),
+            digitos.slice(8, 10),
+            digitos.slice(10, 12),
+        ];
+        let saida = partes[0];
+        if (partes[1]) saida += "/" + partes[1];
+        if (partes[2]) saida += "/" + partes[2];
+        if (partes[3]) saida += " " + partes[3];
+        if (partes[4]) saida += ":" + partes[4];
+        return saida;
+    }
+
+    function iniciarMascaraData() {
+        $$("[data-mascara-data]").forEach((campo) => {
+            campo.addEventListener("input", () => {
+                campo.value = formatarMascaraData(campo.value);
+            });
+        });
+    }
+
+
     document.addEventListener("DOMContentLoaded", () => {
         iniciarGaveta();
         iniciarFiltros();
@@ -753,5 +783,6 @@
         iniciarInstalacao();
         iniciarPreferencias();
         iniciarAssistente();
+        iniciarMascaraData();
     });
 })();

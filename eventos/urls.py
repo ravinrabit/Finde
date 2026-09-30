@@ -45,7 +45,8 @@ urlpatterns = [
     path("agenda.ics", views.agenda_ics, name="agenda_ics"),
 
     # ---------------- evento ----------------
-    
+    # O conversor <slug> também casa com dígitos, então a rota por id vem primeiro,
+    # senão /evento/123/ cairia em evento_detalhe e o redirect legado nunca rodaria.
     path("evento/<int:pk>/", views.evento_por_id, name="evento_por_id"),
     path("evento/<slug:slug>/", views.evento_detalhe, name="evento_detalhe"),
     path("evento/<slug:slug>/agenda.ics", views.evento_ics, name="evento_ics"),
@@ -75,6 +76,7 @@ urlpatterns = [
 
     # ---------------- conta e privacidade ----------------
     path("conta/criar/", views.cadastro, name="cadastro"),
+    path("conta/perfil/", views.perfil, name="perfil"),
     path("conta/privacidade/", views.minha_privacidade, name="minha_privacidade"),
     path("conta/privacidade/exportar/", views.exportar_meus_dados, name="exportar_meus_dados"),
     path("conta/privacidade/excluir/", views.excluir_minha_conta, name="excluir_minha_conta"),
@@ -106,7 +108,8 @@ urlpatterns = [
         name="manifest",
     ),
     path(
-        
+        # Precisa ficar na raiz do site (não em /static/) para o escopo do
+        # service worker cobrir todas as páginas, não só os arquivos estáticos.
         "sw.js",
         TemplateView.as_view(
             template_name="sw.js",
