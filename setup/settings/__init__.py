@@ -7,12 +7,12 @@ if not _AMBIENTE:
         from decouple import config
 
         _AMBIENTE = config("DJANGO_ENV", default="dev").strip().lower()
-    except Exception:
+    except Exception:  # pragma: no cover - decouple sempre está instalado
         _AMBIENTE = "dev"
 
 if _AMBIENTE in {"prod", "producao", "produção", "production"}:
-    from .prod import *
+    from .prod import *  # noqa: F401,F403
 elif _AMBIENTE in {"test", "teste", "testes"}:
-    from .test import *
+    from .test import *  # noqa: F401,F403
 else:
-    from .dev import *
+    from .dev import *  # noqa: F401,F403

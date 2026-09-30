@@ -1,10 +1,14 @@
-from .base import *
+from .base import *  # noqa: F401,F403
 
 DEBUG = False
 SECRET_KEY = "chave-so-para-testes-nao-usar-em-producao"
 ALLOWED_HOSTS = ["*"]
 
-MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m]  
+# O WhiteNoise serve arquivo estático — não tem papel nenhum em teste, e
+# manter o middleware fazia a suíte inteira depender de um pacote que só
+# importa em produção. Um ambiente sem ele derrubava 140 testes com
+# ModuleNotFoundError, escondendo as falhas de verdade.
+MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m]  # noqa: F405
 
 DATABASES = {
     "default": {
@@ -28,9 +32,12 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
+# Cada teste que precisa de limite (ou de cache de página) liga o seu explicitamente —
+# senão a resposta cacheada de um teste vaza pro próximo e response.context vira None.
 RATELIMIT_ATIVO = False
 CACHE_PAGINA_ATIVO = False
 
+# Nenhuma chamada de rede durante os testes.
 GEOCODING_ATIVO = False
 IA_ATIVO = False
 HCAPTCHA_ATIVO = False
