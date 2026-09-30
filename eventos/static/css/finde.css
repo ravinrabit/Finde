@@ -1459,13 +1459,6 @@ select {
     opacity: .92;
 }
 
-.hero-skyline {
-    display: block;
-    width: 100%;
-    height: auto;
-    color: rgba(255, 255, 255, .13);
-}
-
 .hero-numeros {
     display: flex;
     flex-wrap: wrap;
