@@ -357,6 +357,15 @@ class CadastroDeEventoTests(TestCase):
         self.assertTrue(evento.local_ref.tem_coordenadas)
         self.assertTrue(evento.tem_coordenadas)
 
+    def test_data_no_formato_brasileiro_e_aceita(self):
+        inicio = timezone.localtime() + timedelta(days=20)
+        resposta = self.client.post(
+            reverse("criar_evento"), self.dados(data=inicio.strftime("%d/%m/%Y %H:%M"))
+        )
+        self.assertRedirects(resposta, reverse("meus_eventos"), fetch_redirect_response=False)
+        evento = Evento.objects.get(nome="Festival Novo de Teste")
+        self.assertEqual(evento.data.date(), inicio.date())
+
     def test_data_no_passado_e_recusada(self):
         passado = (timezone.localtime() - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M")
         resposta = self.client.post(reverse("criar_evento"), self.dados(data=passado))
@@ -386,6 +395,18 @@ class CadastroDeEventoTests(TestCase):
         self.client.post(reverse("editar_evento", args=[meu.slug]), self.dados(nome=meu.nome))
         meu.refresh_from_db()
         self.assertEqual(meu.status, Evento.Status.PENDENTE)
+
+    def test_campo_de_data_mostra_formato_brasileiro(self):
+        meu = criar_evento(
+            criado_por=self.usuario,
+            status=Evento.Status.REJEITADO,
+            data=timezone.localtime() + timedelta(days=20, hours=1),
+        )
+        resposta = self.client.get(reverse("editar_evento", args=[meu.slug]))
+        esperado = timezone.localtime(meu.data).strftime("%d/%m/%Y %H:%M")
+        self.assertContains(resposta, f'value="{esperado}"')
+        self.assertContains(resposta, "data-mascara-data")
+        self.assertNotContains(resposta, 'type="datetime-local"')
 
 
 # =========================

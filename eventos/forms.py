@@ -309,7 +309,41 @@ def validar_imagem(imagem):
     return imagem
 
 
+FORMATO_DATA_BR = "%d/%m/%Y %H:%M"
+
+
+def _widget_data_br(**attrs_extra):
+    attrs = {
+        "placeholder": "dd/mm/aaaa hh:mm",
+        "inputmode": "numeric",
+        "autocomplete": "off",
+        "maxlength": 16,
+        "data-mascara-data": "",
+    }
+    attrs.update(attrs_extra)
+    return forms.DateTimeInput(attrs=attrs, format=FORMATO_DATA_BR)
+
+
 class EventoForm(AcessibilidadeMixin, forms.ModelForm):
+    # Campo nativo <input type="datetime-local"> mostra a data no formato do
+    # idioma do navegador de quem visita (podia sair mm/dd/aaaa pra quem tem
+    # o navegador em inglês, mesmo o site sendo em português) — por isso
+    # viram campo de texto com máscara em JS (ver data-mascara-data em
+    # finde.js) sempre em dd/mm/aaaa hh:mm, independente do navegador.
+    data = forms.DateTimeField(
+        label="Início",
+        input_formats=[FORMATO_DATA_BR],
+        widget=_widget_data_br(),
+        help_text="Formato: dd/mm/aaaa hh:mm.",
+    )
+    data_fim = forms.DateTimeField(
+        label="Término",
+        required=False,
+        input_formats=[FORMATO_DATA_BR],
+        widget=_widget_data_br(),
+        help_text="Formato: dd/mm/aaaa hh:mm.",
+    )
+
     class Meta:
         model = Evento
         fields = [
@@ -328,8 +362,6 @@ class EventoForm(AcessibilidadeMixin, forms.ModelForm):
             "descricao": forms.Textarea(
                 attrs={"rows": 8, "placeholder": "Conte o que vai acontecer, quem se apresenta, o que levar…"}
             ),
-            "data": forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
-            "data_fim": forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
             "local": forms.TextInput(attrs={"placeholder": "Ex.: Clube do Choro", "list": "locais-conhecidos"}),
             "endereco": forms.TextInput(attrs={"placeholder": "Ex.: SDC Eixo Monumental, Lote 5"}),
             "preco": forms.NumberInput(attrs={"step": "0.01", "min": "0", "placeholder": "0,00"}),
