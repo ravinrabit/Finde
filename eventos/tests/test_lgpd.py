@@ -196,3 +196,17 @@ class PerfilTests(TestCase):
         self.assertFalse(PerfilUsuario.objects.filter(usuario=self.pessoa).exists())
         self.client.get(reverse("perfil"))
         self.assertTrue(PerfilUsuario.objects.filter(usuario=self.pessoa).exists())
+
+    def test_pagina_nao_mostra_marcacao_crua_do_widget_padrao_quando_ja_tem_foto(self):
+        perfil = PerfilUsuario.objects.create(usuario=self.pessoa, foto=_imagem_valida())
+        resposta = self.client.get(reverse("perfil"))
+        conteudo = resposta.content.decode()
+        self.assertNotIn("Atualmente:", conteudo)
+        self.assertNotIn("Limpar", conteudo)
+        self.assertIn(perfil.foto.url, conteudo)
+
+    def test_remove_a_foto_de_perfil(self):
+        PerfilUsuario.objects.create(usuario=self.pessoa, foto=_imagem_valida())
+        self.client.post(reverse("perfil"), {"acao": "remover_foto"})
+        self.pessoa.refresh_from_db()
+        self.assertFalse(self.pessoa.perfil.foto)

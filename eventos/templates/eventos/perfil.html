@@ -25,16 +25,19 @@
             <div class="campo-grupo {% if form_foto.foto.errors %}campo-invalido{% endif %}">
                 <span class="campo-rotulo">{{ form_foto.foto.label }}</span>
                 <label class="upload upload-redonda" for="{{ form_foto.foto.id_for_label }}" data-upload>
-                    <div class="upload-texto" data-upload-texto>
+                    <div class="upload-texto" data-upload-texto {% if perfil_do_usuario.foto %}hidden{% endif %}>
                         {% icone "quadro" 32 %}
                         <strong>Clique ou arraste uma foto</strong>
                         <span class="upload-dica">Formato quadrado funciona melhor · JPG, PNG, WEBP ou GIF · até 5 MB</span>
                     </div>
-                    <img class="upload-previa" data-upload-previa hidden alt="Pré-visualização da foto de perfil">
+                    <img class="upload-previa" data-upload-previa {% if not perfil_do_usuario.foto %}hidden{% endif %} src="{% if perfil_do_usuario.foto %}{{ perfil_do_usuario.foto.url }}{% endif %}" alt="Pré-visualização da foto de perfil">
                     {{ form_foto.foto }}
                 </label>
                 <p class="campo-ajuda">{{ form_foto.foto.help_text }}</p>
                 {% for erro in form_foto.foto.errors %}<p class="campo-erro">{{ erro }}</p>{% endfor %}
+                {% if perfil_do_usuario.foto %}
+                    <button type="submit" name="acao" value="remover_foto" class="btn btn-fantasma btn-p" formnovalidate>Remover foto</button>
+                {% endif %}
             </div>
 
             <div class="formulario-acoes">

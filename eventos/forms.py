@@ -255,7 +255,7 @@ class FotoPerfilForm(AcessibilidadeMixin, forms.ModelForm):
     class Meta:
         model = PerfilUsuario
         fields = ["foto"]
-        widgets = {"foto": forms.ClearableFileInput(attrs={"accept": "image/*"})}
+        widgets = {"foto": forms.FileInput(attrs={"accept": "image/*"})}
         labels = {"foto": "Foto de perfil"}
         help_texts = {"foto": "JPG, PNG, WEBP ou GIF, até 5 MB."}
 

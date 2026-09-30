@@ -1110,6 +1110,11 @@ def perfil(request):
     perfil_do_usuario, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
 
     if request.method == "POST":
+        if request.POST.get("acao") == "remover_foto":
+            perfil_do_usuario.foto.delete(save=True)
+            messages.success(request, "Foto removida.")
+            return redirect("perfil")
+
         form_nome = PerfilForm(request.POST, initial={"full_name": request.user.get_full_name()})
         form_foto = FotoPerfilForm(request.POST, request.FILES, instance=perfil_do_usuario)
         if form_nome.is_valid() and form_foto.is_valid():
@@ -1124,6 +1129,7 @@ def perfil(request):
     return render(request, "eventos/perfil.html", {
         "form_nome": form_nome,
         "form_foto": form_foto,
+        "perfil_do_usuario": perfil_do_usuario,
     })
 
 
