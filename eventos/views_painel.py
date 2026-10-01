@@ -11,7 +11,7 @@ from .forms import EventoPainelForm, LocalForm, ProdutorPainelForm
 from .models import Evento, Local, Produtor, SolicitacaoDestaque
 from .services import catalogo, moderacao
 from .services import painel as servico_painel
-from .views import gerar_variantes_de_capa, paginar
+from .views import destino_seguro, gerar_variantes_de_capa, paginar
 
 EVENTOS_POR_PAGINA_PAINEL = 20
 PRODUTORES_POR_PAGINA_PAINEL = 20
@@ -103,7 +103,7 @@ def evento_publicar(request, slug):
     evento = get_object_or_404(Evento, slug=slug)
     moderacao.publicar(evento, request=request)
     messages.success(request, f'"{evento.nome}" foi publicado.')
-    return redirect(request.POST.get("proximo") or reverse("painel_moderacao"))
+    return redirect(destino_seguro(request, reverse("painel_moderacao")))
 
 
 @staff_requerido
@@ -113,7 +113,7 @@ def evento_rejeitar(request, slug):
     motivo = request.POST.get("motivo", "").strip()
     moderacao.rejeitar(evento, motivo=motivo, request=request)
     messages.success(request, f'"{evento.nome}" foi rejeitado.')
-    return redirect(request.POST.get("proximo") or reverse("painel_moderacao"))
+    return redirect(destino_seguro(request, reverse("painel_moderacao")))
 
 
 @staff_requerido
@@ -122,7 +122,7 @@ def evento_arquivar(request, slug):
     evento = get_object_or_404(Evento, slug=slug)
     moderacao.arquivar(evento)
     messages.success(request, f'"{evento.nome}" foi arquivado.')
-    return redirect(request.POST.get("proximo") or reverse("painel_moderacao"))
+    return redirect(destino_seguro(request, reverse("painel_moderacao")))
 
 
 @staff_requerido
@@ -192,7 +192,7 @@ def produtor_verificar(request, slug):
     produtor = get_object_or_404(Produtor, slug=slug)
     moderacao.verificar_produtor(produtor, verificado=True)
     messages.success(request, f'"{produtor.nome}" foi verificado.')
-    return redirect(request.POST.get("proximo") or reverse("painel_produtores"))
+    return redirect(destino_seguro(request, reverse("painel_produtores")))
 
 
 @staff_requerido
@@ -201,7 +201,7 @@ def produtor_remover_verificacao(request, slug):
     produtor = get_object_or_404(Produtor, slug=slug)
     moderacao.verificar_produtor(produtor, verificado=False)
     messages.success(request, f'Verificação de "{produtor.nome}" foi removida.')
-    return redirect(request.POST.get("proximo") or reverse("painel_produtores"))
+    return redirect(destino_seguro(request, reverse("painel_produtores")))
 
 
 @staff_requerido

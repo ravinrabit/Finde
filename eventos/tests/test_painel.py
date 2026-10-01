@@ -11,6 +11,40 @@ from ..models import Evento, Local, Produtor, SolicitacaoDestaque
 from .base import criar_evento, criar_local, criar_produtor, criar_usuario
 
 
+class RedirecionamentoSeguroNoPainelTests(TestCase):
+    # Os botões de moderação/verificação levam o "proximo" (pra onde voltar
+    # depois da ação) por um campo oculto preenchido pelo próprio template -
+    # mas nada impede um POST direto com outro valor, então o destino
+    # precisa ser validado como em `destino_seguro` (views.py), não só
+    # aceito cru como no `redirect(request.POST.get("proximo") or ...)`.
+    def setUp(self):
+        self.staff = criar_usuario("equipe-redirect@exemplo.test")
+        self.staff.is_staff = True
+        self.staff.save()
+        self.client.force_login(self.staff)
+
+    def test_publicar_nao_redireciona_para_fora_do_site(self):
+        evento = criar_evento(nome="Evento Pra Publicar", status=Evento.Status.PENDENTE)
+        url = reverse("painel_evento_publicar", args=[evento.slug])
+        resposta = self.client.post(url, {"proximo": "https://exemplo-malicioso.test/"})
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(resposta.url, reverse("painel_moderacao"))
+
+    def test_publicar_respeita_destino_interno(self):
+        evento = criar_evento(nome="Evento Pra Publicar Dois", status=Evento.Status.PENDENTE)
+        url = reverse("painel_evento_publicar", args=[evento.slug])
+        destino = reverse("painel_evento_editar", args=[evento.slug])
+        resposta = self.client.post(url, {"proximo": destino})
+        self.assertRedirects(resposta, destino)
+
+    def test_verificar_produtor_nao_redireciona_para_fora_do_site(self):
+        produtor = criar_produtor(nome="Produtor Pra Verificar")
+        url = reverse("painel_produtor_verificar", args=[produtor.slug])
+        resposta = self.client.post(url, {"proximo": "https://exemplo-malicioso.test/"})
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(resposta.url, reverse("painel_produtores"))
+
+
 class AcessoAoPainelTests(TestCase):
     def test_visitante_anonimo_e_redirecionado_para_login(self):
         resposta = self.client.get(reverse("painel_evento_criar"))
