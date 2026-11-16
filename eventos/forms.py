@@ -340,6 +340,13 @@ def validar_imagem(imagem):
         imagem.seek(0)
         with Image.open(imagem) as identificada:
             formato = identificada.format
+    except Image.DecompressionBombError:
+        # Dimensões declaradas gigantes num arquivo minúsculo (ex.: um PNG
+        # de 70 bytes dizendo ter 60000x60000px) — o Pillow detecta isso
+        # antes de decodificar e levanta uma exceção própria, que não é
+        # OSError nem ValueError e por isso escapava do except abaixo,
+        # virando 500 em vez de erro de validação.
+        raise forms.ValidationError("Envie uma imagem JPG, PNG, WEBP ou GIF válida.")
     except (UnidentifiedImageError, OSError, ValueError):
         raise forms.ValidationError("Envie uma imagem JPG, PNG, WEBP ou GIF válida.")
     finally:

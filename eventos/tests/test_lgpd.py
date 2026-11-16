@@ -20,6 +20,28 @@ def _imagem_valida(nome="foto.png"):
     return SimpleUploadedFile(nome, buffer.read(), content_type="image/png")
 
 
+def _imagem_bomba_de_descompressao(nome="bomba.png"):
+    # PNG minúsculo que declara dimensões gigantes (60000x60000px) no
+    # cabeçalho IHDR sem ter pixel nenhum de verdade — faz o Pillow levantar
+    # Image.DecompressionBombError já na abertura, antes de decodificar.
+    import struct
+    import zlib
+
+    def bloco(tag, dados):
+        return (
+            struct.pack(">I", len(dados))
+            + tag
+            + dados
+            + struct.pack(">I", zlib.crc32(tag + dados) & 0xFFFFFFFF)
+        )
+
+    assinatura = b"\x89PNG\r\n\x1a\n"
+    ihdr = struct.pack(">IIBBBBB", 60000, 60000, 8, 2, 0, 0, 0)
+    idat = zlib.compress(b"\x00" + b"\x00" * 3)
+    png = assinatura + bloco(b"IHDR", ihdr) + bloco(b"IDAT", idat) + bloco(b"IEND", b"")
+    return SimpleUploadedFile(nome, png, content_type="image/png")
+
+
 class ConsentimentoTests(TestCase):
     def test_cadastro_registra_o_aceite(self):
         self.client.post(
@@ -210,3 +232,12 @@ class PerfilTests(TestCase):
         self.client.post(reverse("perfil"), {"acao": "remover_foto"})
         self.pessoa.refresh_from_db()
         self.assertFalse(self.pessoa.perfil.foto)
+
+    def test_foto_com_dimensoes_declaradas_absurdas_e_recusada_sem_quebrar(self):
+        resposta = self.client.post(
+            reverse("perfil"),
+            {"full_name": "Maria Silva", "foto": _imagem_bomba_de_descompressao()},
+        )
+        self.assertEqual(resposta.status_code, 200)
+        perfil, _ = PerfilUsuario.objects.get_or_create(usuario=self.pessoa)
+        self.assertFalse(perfil.foto)
